@@ -145,3 +145,5 @@ console.log("Pedidos pendientes:", pendientes.map(p => p.id));
 console.log("Pedido más caro:", masCaro);
 console.log("Promedio por cliente:", promedioPorCliente);
 console.log("Ejercicio en progreso");
+console.log(" ")
+console.log('prueba');
