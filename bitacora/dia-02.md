@@ -78,92 +78,143 @@ Copia esta plantilla en `bitacora/dia-XX.md` cada día (por ejemplo `bitacora/di
    - Nullish coalescing (`??`): asigna un valor por defecto solo si el valor es `null` o `undefined`. A diferencia de `||`, respeta `0` y `""`.
 
 ## Lo que aprendí hoy (3 cosas)
+- A trabajar con ramas: crear una rama con `git switch -c`, subirla con `git push -u origin` y entender que una rama nueva solo existe en mi computador hasta que hago push.
+- A usar `git stash` para guardar cambios sin terminar y cambiar de rama sin perderlos, y `git revert` para deshacer un commit que ya está subido sin reescribir el historial.
+- A usar métodos de arrays en JavaScript (`map`, `filter`, `reduce`) para calcular totales, agrupar y promediar datos, y a relacionarlos con LINQ de C# (`Select`, `Where`, `Sum`).
 
--
 ## Lo que no entendí o me costó
+- Diferenciar cuándo usar `rebase` y cuándo `merge`, sobre todo por el riesgo de reescribir el historial en ramas compartidas.
+- Usar `reduce` para agrupar datos en un objeto (total por ciudad y promedio por cliente), porque el acumulador no es un número sino un objeto.
 
--
 ## Errores que tuve y cómo los resolví
 | Error | Causa | Solución |
 |---|---|---|
-
+| La rama `feature/js-fundamentos` no aparecía en GitHub | La rama solo existía en local porque no había hecho push | La subí con `git push -u origin feature/js-fundamentos` |
+| `nothing added to commit but untracked files present` | Hice `git add` de `.gitignore` y `entorno.md` sin haber guardado los cambios en VS Code | Guardé los archivos con `Ctrl + S`, verifiqué con `git status` y repetí el commit |
+| `No local changes to save` al hacer `git stash` | No había cambios pendientes; todo ya estaba en un commit | Modifiqué un archivo sin hacer commit y repetí el `git stash` |
+| No existía el archivo `03_Ejercicios_por_Tema.md` | El archivo no estaba en el repo ni en el material | Creé `semana-1/javascript/ejercicios-basicos.md` con 10 ejercicios de los temas de la autoinvestigación |
 
 ## Uso de IA hoy
+- ¿La usé? Sí.
+- ¿Para qué? Para guiarme paso a paso en el flujo de ramas, stash, revert y Pull Request, entender los errores de la terminal y resolver los ejercicios de JavaScript.
+- ¿Qué aprendí de eso? Que hay que leer con atención lo que responde Git, porque mensajes como `nothing added to commit` o `No local changes to save` explican exactamente qué está pasando.
 
-## Autoevaluación del tema (1-5):4
+## Autoevaluación del tema (1-5): 4
+Logré trabajar con ramas, stash y Pull Request, y resolver los ejercicios de JavaScript, pero todavía necesito practicar más `rebase` y `reduce` para usarlos con seguridad.
 
+Informacion restante
 
-
-
-Comando git log --oneline --graph
-ndrendon@ndrendon UCRT64 ~/Documents/cielum-induccion-nicolas (main)
-$ git log --oneline --graph
-* 650c34b (HEAD -> main) docs: crear bitácora del día 01
-* d7f3b69 chore: agregar .gitignore
-* c8ed620 chore: agregar .gitignore~
-* 8089692 docs: agregar README inicial
-
-Comando git diff --staged
-ndrendon@ndrendon UCRT64 ~/Documents/cielum-induccion-nicolas (main)
-$ git diff --staged
-
-ndrendon@ndrendon UCRT64 ~/Documents/cielum-induccion-nicolas (main)
-$ git add bitacora/dia-01.md
-git diff --staged
-warning: in the working copy of 'bitacora/dia-01.md', LF will be replaced by CRLF the next time Git touches it
-diff --git a/bitacora/dia-01.md b/bitacora/dia-01.md
-index 7dbaf02..e7b81ff 100644
---- a/bitacora/dia-01.md
-+++ b/bitacora/dia-01.md
-@@ -1 +1,153 @@
--# Bitácora - Día 01
-+# 05 · Plantilla de Bitácora Diaria
-+Copia esta plantilla en `bitacora/dia-XX.md` cada día (por ejemplo `bitacora/dia-03.md`) y llénala a lo largo de la jornada, no al final.
-+
-+**Reglas de la bitácora**
-+- Responde con tus palabras. Una respuesta copiada de internet o de una IA vale 2.0.
-
-Comando git commit -m "docs: documentar comando" escrito mal a proposito
-ndrendon@ndrendon UCRT64 ~/Documents/cielum-induccion-nicolas (main)
-$ git commit -m "docs: documentar comando"
-On branch main
-Your branch is based on 'origin/main', but the upstream is gone.
-  (use "git branch --unset-upstream" to fixup)
-
-Untracked files:
-  (use "git add <file>..." to include in what will be committed)
-        entorno.md
-
-nothing added to commit but untracked files present (use "git add" to track)
-
-Comando git commit --amend para corregirlo
-ndrendon@ndrendon UCRT64 ~/Documents/cielum-induccion-nicolas (main)
-$ git commit --amend -m "docs: documentar comandos avanzados en bitácora"
-git log --oneline --graph
-[main 46cc144] docs: documentar comandos avanzados en bitácora
- Date: Wed Sep 30 12:02:41 2026 -0500
- 1 file changed, 1 insertion(+)
- create mode 100644 bitacora/dia-01.md
-* 46cc144 (HEAD -> main) docs: documentar comandos avanzados en bitácora
-* d7f3b69 chore: agregar .gitignore
-* c8ed620 chore: agregar .gitignore~
-* 8089692 docs: agregar README inicial
-
-ndrendon@ndrendon UCRT64 ~/Documents/cielum-induccion-nicolas (main)
-$ git push -u origin main
-Enumerating objects: 13, done.
-Counting objects: 100% (13/13), done.
+ndrendon@ndrendon UCRT64 ~/Documents/cielum-induccion-nicolas (feature/js-fundamentos)
+$ echo "console.log('prueba');" >> semana-1/javascript/fundamentos.js
+git commit -am "test: línea de prueba"
+git push
+git log --oneline
+git revert <hash-del-commit> --no-edit
+git push
+warning: in the working copy of 'semana-1/javascript/fundamentos.js', LF will be replaced by CRLF the next time Git touches it
+[feature/js-fundamentos ca20c92] test: línea de prueba
+ 1 file changed, 2 insertions(+)
+Enumerating objects: 9, done.
+Counting objects: 100% (9/9), done.
 Delta compression using up to 8 threads
-Compressing objects: 100% (7/7), done.
-Writing objects: 100% (13/13), 1.14 KiB | 233.00 KiB/s, done.
-Total 13 (delta 1), reused 0 (delta 0), pack-reused 0 (from 0)
-remote: Resolving deltas: 100% (1/1), done.
+Compressing objects: 100% (3/3), done.
+Writing objects: 100% (5/5), 432 bytes | 216.00 KiB/s, done.
+Total 5 (delta 2), reused 0 (delta 0), pack-reused 0 (from 0)
+remote: Resolving deltas: 100% (2/2), completed with 2 local objects.
 To github.com:ndrendon/cielum-induccion-nicolas.git
- * [new branch]      main -> main
-branch 'main' set up to track 'origin/main'.
+   87c71c4..ca20c92  feature/js-fundamentos -> feature/js-fundamentos
+ca20c92 (HEAD -> feature/js-fundamentos, origin/feature/js-fundamentos) test: línea de prueba
+87c71c4 feat: ejercicios JS básico e intermedio
+82645bf docs(bitacora): dia 02
+cf4a2c6 docs: actualizar título del README
+d57edf3 fix: corregir .gitignore y limpiar entorno.md
+fab6503 (origin/main, origin/HEAD, main) docs: agregar versiones del entorno
+7c2b678 docs: actualizar bitácora del día 01
+46cc144 docs: documentar comandos avanzados en bitácora
+d7f3b69 chore: agregar .gitignore
+c8ed620 chore: agregar .gitignore~
+8089692 docs: agregar README inicial
+bash: hash-del-commit: No such file or directory
+Everything up-to-date
 
-Uso de los comandos avanzados
-- `git log --oneline --graph`: me mostró el historial de commits resumido, una línea por commit con su código corto (hash) y un gráfico de las ramas.
-- `git diff --staged`: me mostró los cambios que ya había agregado con `git add` pero que todavía no había guardado con commit. Las líneas nuevas salen en verde con `+`.
-- `git commit --amend`: me permitió corregir el mensaje del último commit sin crear uno nuevo. Noté que el hash del commit cambió.
-```
+ndrendon@ndrendon UCRT64 ~/Documents/cielum-induccion-nicolas (feature/js-fundamentos)
+$ git revert b1f6a42 ca20c92 --no-edit
+git push
+git log --oneline -5
+[feature/js-fundamentos 84f0a49] Revert "test: línea de prueba"
+ Date: Fri Oct 2 09:01:24 2026 -0500
+ 1 file changed, 1 deletion(-)
+[feature/js-fundamentos 56ec59b] Revert "test: línea de prueba"
+ Date: Fri Oct 2 09:01:24 2026 -0500
+ 1 file changed, 2 deletions(-)
+Enumerating objects: 14, done.
+Counting objects: 100% (14/14), done.
+Delta compression using up to 8 threads
+Compressing objects: 100% (6/6), done.
+Writing objects: 100% (10/10), 747 bytes | 124.00 KiB/s, done.
+Total 10 (delta 5), reused 0 (delta 0), pack-reused 0 (from 0)
+remote: Resolving deltas: 100% (5/5), completed with 2 local objects.
+To github.com:ndrendon/cielum-induccion-nicolas.git
+   b1f6a42..56ec59b  feature/js-fundamentos -> feature/js-fundamentos
+56ec59b (HEAD -> feature/js-fundamentos, origin/feature/js-fundamentos) Revert "test: línea de prueba"
+84f0a49 Revert "test: línea de prueba"
+b1f6a42 test: línea de prueba
+ca20c92 test: línea de prueba
+87c71c4 feat: ejercicios JS básico e intermedio
+
+ndrendon@ndrendon UCRT64 ~/Documents/cielum-induccion-nicolas (feature/js-fundamentos)
+$ tail -3 semana-1/javascript/fundamentos.js
+console.log("Pedido más caro:", masCaro);
+console.log("Promedio por cliente:", promedioPorCliente);
+console.log("Ejercicio en progreso");
+
+ndrendon@ndrendon UCRT64 ~/Documents/cielum-induccion-nicolas (feature/js-fundamentos)
+$ git switch main
+git pull
+git switch feature/js-fundamentos
+git merge main
+Switched to branch 'main'
+Your branch is up to date with 'origin/main'.
+remote: Enumerating objects: 5, done.
+remote: Counting objects: 100% (5/5), done.
+remote: Compressing objects: 100% (3/3), done.
+remote: Total 3 (delta 1), reused 0 (delta 0), pack-reused 0 (from 0)
+Unpacking objects: 100% (3/3), 970 bytes | 57.00 KiB/s, done.
+From github.com:ndrendon/cielum-induccion-nicolas
+   fab6503..68ae2d0  main       -> origin/main
+Updating fab6503..68ae2d0
+Fast-forward
+ README.md | 2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
+Switched to branch 'feature/js-fundamentos'
+Your branch is up to date with 'origin/feature/js-fundamentos'.
+Auto-merging README.md
+CONFLICT (content): Merge conflict in README.md
+Automatic merge failed; fix conflicts and then commit the result.
+
+ndrendon@ndrendon UCRT64 ~/Documents/cielum-induccion-nicolas (feature/js-fundamentos|MERGING)
+$ git add README.md
+git commit --no-edit
+git push
+git log --oneline --graph -8
+[feature/js-fundamentos e1fb833] Merge branch 'main' into feature/js-fundamentos
+Enumerating objects: 7, done.
+Counting objects: 100% (7/7), done.
+Delta compression using up to 8 threads
+Compressing objects: 100% (3/3), done.
+Writing objects: 100% (3/3), 371 bytes | 371.00 KiB/s, done.
+Total 3 (delta 2), reused 0 (delta 0), pack-reused 0 (from 0)
+remote: Resolving deltas: 100% (2/2), completed with 2 local objects.
+To github.com:ndrendon/cielum-induccion-nicolas.git
+   56ec59b..e1fb833  feature/js-fundamentos -> feature/js-fundamentos
+*   e1fb833 (HEAD -> feature/js-fundamentos, origin/feature/js-fundamentos) Merge branch 'main' into feature/js-fundamentos
+|\  
+| * 68ae2d0 (origin/main, origin/HEAD, main) docs: cambio de título desde main
+* | 56ec59b Revert "test: línea de prueba"
+* | 84f0a49 Revert "test: línea de prueba"
+* | b1f6a42 test: línea de prueba
+* | ca20c92 test: línea de prueba
+* | 87c71c4 feat: ejercicios JS básico e intermedio
+* | 82645bf docs(bitacora): dia 02
+
+
