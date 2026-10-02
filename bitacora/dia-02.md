@@ -58,7 +58,7 @@ Copia esta plantilla en `bitacora/dia-XX.md` cada día (por ejemplo `bitacora/di
    `notas` es un array declarado con `const` porque la variable no se reasigna, y `total` usa `let` porque su valor cambia. El bucle `for...of` recorre cada nota y la suma al total. `aprobo` es una función flecha que devuelve true si la nota es mayor o igual a 3, y `estudiante` es un objeto con una clave `nombre`. `filter(aprobo)` devuelve solo las notas aprobadas: `[3, 5]`. La comparación muestra `true false`, porque `==` convierte el texto a número y `===` también compara el tipo. Por último, el ternario evalúa si el total (10) es mayor o igual a 9 e imprime "Bien".
    Fuente: https://developer.mozilla.org/es/docs/Web/JavaScript/Guide | https://developer.mozilla.org/es/docs/Web/JavaScript/Reference/Functions/Arrow_functions
 
-## Autoinvestigación avanzada
+
 ## Autoinvestigación avanzada
 1. Git: rebase vs merge (cuándo sí, cuándo no), stash, cherry-pick, reset (soft/mixed/hard) vs revert, tags, GitFlow vs trunk-based.
    - Rebase vs merge: `merge` une dos ramas con un commit de unión y conserva el historial tal como ocurrió. `rebase` mueve mis commits encima de otra rama y deja un historial lineal. Rebase conviene para actualizar mi rama local antes de un Pull Request. No se debe usar en ramas compartidas ya subidas, porque reescribe el historial. En esos casos se usa merge.
