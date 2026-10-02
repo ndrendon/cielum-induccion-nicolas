@@ -1,0 +1,77 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Reporte de usuarios</title>
+  <style>
+    body {
+      font-family: system-ui, sans-serif;
+      margin: 2rem;
+      color: #1f2937;
+      background: #f9fafb;
+    }
+
+    h1 {
+      margin-bottom: 0.5rem;
+    }
+
+    #estado {
+      color: #4b5563;
+    }
+
+    #estado.error {
+      color: #b91c1c;
+    }
+
+    table {
+      border-collapse: collapse;
+      width: 100%;
+      max-width: 720px;
+      background: #ffffff;
+    }
+
+    th,
+    td {
+      border: 1px solid #d1d5db;
+      padding: 0.5rem 0.75rem;
+      text-align: left;
+    }
+
+    th {
+      background: #e5e7eb;
+    }
+
+    td.numero {
+      text-align: right;
+    }
+
+    tfoot td {
+      font-weight: bold;
+    }
+  </style>
+</head>
+<body>
+  <h1>Reporte de usuarios</h1>
+  <p id="estado">Cargando datos...</p>
+
+  <table id="tabla-reporte" hidden>
+    <thead>
+      <tr>
+        <th>Usuario</th>
+        <th>Ciudad</th>
+        <th>Cantidad de posts</th>
+      </tr>
+    </thead>
+    <tbody></tbody>
+    <tfoot>
+      <tr>
+        <td colspan="2">Total</td>
+        <td class="numero" id="total-posts"></td>
+      </tr>
+    </tfoot>
+  </table>
+
+  <script type="module" src="app.js"></script>
+</body>
+</html>
