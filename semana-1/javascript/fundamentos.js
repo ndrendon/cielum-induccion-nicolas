@@ -147,3 +147,4 @@ console.log("Promedio por cliente:", promedioPorCliente);
 console.log("Ejercicio en progreso");
 console.log(" ")
 console.log('prueba');
+console.log('prueba revert');
