@@ -1,6 +1,6 @@
-# Bitácora Día 01 · Inducción Cielum + entorno de trabajo + Git básico
+# Bitácora Día 03 · JavaScript intermedio y asíncrono
 
-**Fecha:** 01-10-2026
+**Fecha:** 02-10-2026
 
 **Horas invertidas:** 6 h (autoinvestigación 3 h · práctica 2 h · reto 1 h)
 
@@ -12,7 +12,7 @@
 
    **Ejemplo propio:**
 
-```js
+   ```js
    function crearContador() {
      let cuenta = 0;
      return function () {
@@ -24,7 +24,7 @@
    const contador = crearContador();
    console.log(contador());
    console.log(contador());
-```
+   ```
 
    La variable `cuenta` se crea dentro de `crearContador`, así que su scope es solo esa función y desde afuera no se puede usar directamente. Cuando llamo a `crearContador()`, me devuelve una función interna que sigue teniendo acceso a `cuenta`, aunque `crearContador` ya terminó. Eso es el closure. Por eso la primera vez que llamo a `contador()` imprime `1` y la segunda imprime `2`: la función recuerda el valor anterior de `cuenta`.
 
@@ -36,7 +36,7 @@
 
    **Ejemplo propio:**
 
-```js
+   ```js
    class Animal {
      constructor(nombre) {
        this.nombre = nombre;
@@ -58,7 +58,7 @@
 
    const miPerro = new Perro("Toby", "Criollo");
    console.log(miPerro.hablar());
-```
+   ```
 
    `Animal` es la clase padre y su constructor guarda el nombre en `this.nombre`. `Perro` hereda de `Animal` usando `extends`. En el constructor de `Perro` primero llamo a `super(nombre)` para que el constructor de `Animal` asigne el nombre, y después agrego la propiedad propia `raza`. Además, `Perro` sobrescribe el método `hablar()` del padre, por eso al ejecutar `miPerro.hablar()` se imprime "Toby ladra" y no "Toby hace un sonido".
 
@@ -70,7 +70,7 @@
 
    **Ejemplo propio:**
 
-```js
+   ```js
    const estudiante = { nombre: "Nicolas", semestre: 5 };
 
    const texto = JSON.stringify(estudiante);
@@ -79,7 +79,7 @@
 
    const objeto = JSON.parse(texto);
    console.log(objeto.nombre);
-```
+   ```
 
    Primero tengo un objeto normal de JS llamado `estudiante`. Con `JSON.stringify` lo convierto en el texto `'{"nombre":"Nicolas","semestre":5}'`, y al revisar con `typeof` confirmo que ahora es un `string`. Después uso `JSON.parse` para convertir ese texto otra vez en un objeto, y así puedo acceder a sus propiedades como `objeto.nombre`, que imprime "Nicolas".
 
@@ -91,7 +91,7 @@
 
    **Ejemplo propio:**
 
-```html
+   ```html
    <h1 id="titulo">Hola</h1>
    <button class="btn">Cambiar</button>
 
@@ -105,7 +105,7 @@
        titulo.classList.add("activo");
      });
    </script>
-```
+   ```
 
    En el HTML hay un título con id `titulo` y un botón con la clase `btn`. En el script selecciono el título por su id con `getElementById` y el botón por su clase con `querySelector`. Luego le agrego al botón un evento `click`, y cuando el usuario lo presiona se cambia el texto del título con `textContent`, se pone de color azul con `style.color` y se le agrega la clase `activo` con `classList.add`.
 
@@ -117,7 +117,7 @@
 
    **Ejemplo propio:**
 
-```js
+   ```js
    export function sumar(a, b) {
      return a + b;
    }
@@ -125,18 +125,18 @@
    export default function restar(a, b) {
      return a - b;
    }
-```
+   ```
 
-```js
+   ```js
    import restar, { sumar, PI } from "./operaciones.js";
    console.log(sumar(2, 3));
    console.log(restar(5, 2));
    console.log(PI);
-```
+   ```
 
-```html
+   ```html
    <script type="module" src="main.js"></script>
-```
+   ```
 
    El primer bloque es el archivo `operaciones.js`, donde exporto con nombre la función `sumar` y la constante `PI`, y exporto por defecto la función `restar`. El segundo bloque es `main.js`, donde las importo: `restar` va sin llaves porque es el export por defecto, y `sumar` y `PI` van dentro de llaves porque son exports con nombre. Al ejecutar, se imprime `5`, `3` y `3.1416`. Para que el navegador entienda los `import`, el script se carga con `type="module"`.
 
@@ -166,30 +166,29 @@
 
 ## Lo que aprendí hoy (3 cosas)
 
-- A trabajar con ramas: crear una rama con `git switch -c`, subirla con `git push -u origin` y entender que una rama nueva solo existe en mi computador hasta que hago push.
-- A usar `git stash` para guardar cambios sin terminar y cambiar de rama sin perderlos, y `git revert` para deshacer un commit que ya está subido sin reescribir el historial.
-- A usar métodos de arrays en JavaScript (`map`, `filter`, `reduce`) para calcular totales, agrupar y promediar datos, y a relacionarlos con LINQ de C# (`Select`, `Where`, `Sum`).
+- Qué son el scope y los closures, y cómo una función puede recordar las variables del lugar donde se creó aunque esa función ya haya terminado.
+- Cómo funciona el event loop: primero corre el código síncrono, después las microtareas (promesas y `await`) y por último tareas como `setTimeout`; y a usar `Promise.all` y `Promise.allSettled` con `async/await`.
+- A organizar un script de Node en módulos ES (`api.js`, `reporte.js`, `index.js`), consumir una API con `fetch` y reutilizar esos mismos módulos en una página HTML que arma una tabla con el DOM.
 
 ## Lo que no entendí o me costó
 
-- Diferenciar cuándo usar `rebase` y cuándo `merge`, sobre todo por el riesgo de reescribir el historial en ramas compartidas.
-- Usar `reduce` para agrupar datos en un objeto (total por ciudad y promedio por cliente), porque el acumulador no es un número sino un objeto.
+- Predecir el orden de salida cuando se mezclan `setTimeout`, promesas y `await` en el mismo código.
+- Entender cómo cambia `this` en una función normal y en una función flecha.
 
 ## Errores que tuve y cómo los resolví
 
 | Error | Causa | Solución |
-|---|---|---|
-| La rama `feature/js-fundamentos` no aparecía en GitHub | La rama solo existía en local porque no había hecho push | La subí con `git push -u origin feature/js-fundamentos` |
-| `nothing added to commit but untracked files present` | Hice `git add` de `.gitignore` y `entorno.md` sin haber guardado los cambios en VS Code | Guardé los archivos con `Ctrl + S`, verifiqué con `git status` y repetí el commit |
-| `No local changes to save` al hacer `git stash` | No había cambios pendientes; todo ya estaba en un commit | Modifiqué un archivo sin hacer commit y repetí el `git stash` |
-| No existía el archivo `03_Ejercicios_por_Tema.md` | El archivo no estaba en el repo ni en el material | Creé `semana-1/javascript/ejercicios-basicos.md` con 10 ejercicios de los temas de la autoinvestigación |
+| --- | --- | --- |
+| markdownlint marcaba `MD032/blanks-around-lists` en la bitácora | Las listas estaban pegadas a los títulos y a los párrafos, sin línea en blanco | Agregué una línea en blanco antes y después de cada lista |
+| No veía los commits del día en la comparación del Pull Request | GitHub ordena los commits del más viejo al más nuevo y los del día estaban al final de la lista | Bajé hasta el final y revisé la pestaña Commits del Pull Request, donde sí aparecían |
+| El ejercicio avanzado pedía un código de `03_Ejercicios_por_Tema.md` | El archivo no estaba en el repo ni en el material | Escribí mi propio código con `setTimeout`, `Promise.resolve().then` y `await`, y justifiqué el orden de salida en `03-avanzado-event-loop.md` |
 
 ## Uso de IA hoy
 
 - ¿La usé? Sí.
-- ¿Para qué? Para guiarme paso a paso en el flujo de ramas, stash, revert y Pull Request, entender los errores de la terminal y resolver los ejercicios de JavaScript.
-- ¿Qué aprendí de eso? Que hay que leer con atención lo que responde Git, porque mensajes como `nothing added to commit` o `No local changes to save` explican exactamente qué está pasando.
+- ¿Para qué? Para entender los temas de la autoinvestigación, organizar el reto en módulos y resolver los errores de markdownlint y de GitHub.
+- ¿Qué aprendí de eso? Que conviene predecir primero el resultado del código y después ejecutarlo para comprobarlo, sobre todo con el event loop, donde el orden no siempre es el que uno espera.
 
 ## Autoevaluación del tema (1-5): 4
 
-Logré trabajar con ramas, stash y Pull Request, y resolver los ejercicios de JavaScript, pero todavía necesito practicar más `rebase` y `reduce` para usarlos con seguridad.
+Logré hacer los ejercicios y el reto con módulos, `fetch` y el DOM, pero todavía necesito practicar el orden del event loop y el uso de `this` para explicarlos con seguridad.
