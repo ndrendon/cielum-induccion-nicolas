@@ -2,7 +2,7 @@
 
 **Fecha:** 06-10-2026
 
-**Horas invertidas:** ? h (autoinvestigación ? h · práctica ? h · reto ? h)
+**Horas invertidas:** 4 h (autoinvestigación 1 h · práctica 2 h · reto 1 h)
 
 ## Autoinvestigación básica
 
@@ -118,7 +118,7 @@
    | Fecha y hora | `TIMESTAMP` | `DATETIME2` |
    | Fecha y hora con zona horaria | `TIMESTAMPTZ` | `DATETIMEOFFSET` |
    | Identificador único | `UUID` | `UNIQUEIDENTIFIER` |
-   | Id autoincremental | `GENERATED ALWAYS AS IDENTITY` o `SERIAL` | `IDENTITY(1, 1)` |
+   | Id autoincremental | `SERIAL` | `IDENTITY(1, 1)` |
 
    Una diferencia importante está en el texto: en PostgreSQL `VARCHAR` guarda cualquier carácter, mientras que en SQL Server, para guardar cualquier carácter sin problemas, se usa `NVARCHAR`, que es Unicode.
 
@@ -126,7 +126,7 @@
 
    ```sql
    CREATE TABLE productos (
-       id_producto INTEGER GENERATED ALWAYS AS IDENTITY PRIMARY KEY,
+       id_producto SERIAL PRIMARY KEY,
        nombre VARCHAR(100) NOT NULL,
        precio NUMERIC(12, 2) NOT NULL,
        activo BOOLEAN NOT NULL DEFAULT TRUE,
@@ -150,23 +150,30 @@
 
 ## Lo que aprendí hoy (3 cosas)
 
--
--
--
+- Qué es Docker y cómo usarlo. Una imagen es como una clase en C# y un contenedor es como un objeto creado a partir de ella: la imagen es la plantilla del programa y el contenedor es esa imagen corriendo, aislada del resto de mi equipo. Con `docker run` levanté contenedores desde imágenes oficiales, usando `-d` para que corran en segundo plano, `--name` para ponerles nombre, `-e` para pasarles variables como la contraseña y `-p` para conectar el puerto del contenedor con el de mi equipo. Con `docker ps` veo los contenedores que están corriendo y con `docker logs` reviso lo que pasa adentro.
+- A montar dos servidores de bases de datos en mi equipo con Docker, PostgreSQL 16 en el puerto 5432 y SQL Server 2022 en el 1433, sin instalarlos directamente en Windows, y a conectarme a los dos desde DBeaver con `localhost`, el puerto, el usuario y la base de datos `induccion`. En SQL Server, además, hay que marcar la opción *Trust Server Certificate*.
+- A crear el modelo del proyecto integrador (`clientes`, `productos`, `pedidos` y `detalle_pedido`) con llaves primarias y foráneas, cargarle datos y hacer 12 consultas con `WHERE`, `GROUP BY`, `HAVING` y `JOIN`. Hay un modelo para cada motor, pero `datos.sql` y `consultas_basicas.sql` son los mismos para PostgreSQL y SQL Server.
 
 ## Lo que no entendí o me costó
 
--
+- Entender por qué Docker Desktop no arrancaba y qué tenía que ver WSL: en Windows, Docker corre los contenedores dentro de un Linux liviano que da WSL 2, así que sin WSL no funciona.
+- La sintaxis más avanzada para crear tablas, como `CONSTRAINT` con nombre y `GENERATED ALWAYS AS IDENTITY`. Dejé el modelo con `SERIAL` en PostgreSQL, `IDENTITY(1, 1)` en SQL Server y `REFERENCES` en la misma columna, que hace lo mismo y es más fácil de leer.
+- Escribir consultas que funcionen igual en los dos motores. Para el top 5, PostgreSQL usa `LIMIT` y SQL Server usa `TOP`, así que usé `OFFSET 0 ROWS FETCH NEXT 5 ROWS ONLY`, que funciona en los dos. Para el promedio usé `CAST(AVG(precio) AS DECIMAL(12, 2))`, para que los dos motores muestren el mismo resultado con dos decimales.
 
 ## Errores que tuve y cómo los resolví
 
 | Error | Causa | Solución |
 | --- | --- | --- |
+| Docker Desktop no arrancaba: "Virtualization support not detected" | Docker Desktop en Windows necesita WSL 2 y mi equipo no lo tenía instalado | Ejecuté `wsl --install`, que instaló WSL y la Plataforma de máquina virtual, reinicié el equipo y Docker arrancó bien |
+| Al correr `modelo_postgres.sql` salieron los avisos "table ... does not exist, skipping" | El `DROP TABLE IF EXISTS` intenta borrar las tablas antes de crearlas, y la primera vez todavía no existían | No era un error: son avisos normales y las tablas se crearon igual |
+| Las tablas no aparecían en la base `induccion` en DBeaver | La primera vez corrí el script cuando la conexión todavía estaba en la base `postgres`, así que las tablas se crearon allá | Cambié la base de la conexión a `induccion` con F4, volví a correr el script con Alt+X y refresqué el árbol con F5 |
 
 ## Uso de IA hoy
 
-- ¿La usé?
-- ¿Para qué?
-- ¿Qué aprendí de eso?
+- ¿La usé? Sí.
+- ¿Para qué? Para entender los temas de la autoinvestigación, guiarme paso a paso para levantar PostgreSQL y SQL Server con Docker y conectarme a ellos con DBeaver, resolver el error de virtualización de Docker y dejar el modelo con una sintaxis más sencilla.
+- ¿Qué aprendí de eso? Que hay que leer bien los mensajes antes de asumir que algo falló: los avisos del `DROP TABLE IF EXISTS` no eran errores, y el log de SQL Server dice cuándo ya está listo para recibir conexiones. También, que antes de correr un script hay que revisar a qué base de datos estoy conectado.
 
-## Autoevaluación del tema (1-5)
+## Autoevaluación del tema (1-5): 4
+
+Logré montar los dos servidores con Docker, conectarme a ellos con DBeaver y correr el modelo, los datos y las 12 consultas en los dos motores, pero todavía necesito practicar los `JOIN` y el `GROUP BY` con `HAVING` para escribirlos sin ayuda, y aprender más comandos de Docker para manejar los contenedores, como detenerlos, volver a iniciarlos y borrarlos.
