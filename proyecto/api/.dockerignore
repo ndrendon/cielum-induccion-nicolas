@@ -1,0 +1,6 @@
+# Archivos que no se copian a la imagen de Docker
+node_modules
+.env
+test
+postman
+README.md
