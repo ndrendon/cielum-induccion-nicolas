@@ -1,0 +1,7 @@
+{
+  "id_cliente": 9,
+  "detalle": [
+    { "id_producto": 8, "cantidad": 2 },
+    { "id_producto": 9, "cantidad": 1 }
+  ]
+}

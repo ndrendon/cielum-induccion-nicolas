@@ -1,0 +1,17 @@
+{
+  "name": "ejercicios-node-express",
+  "version": "1.0.0",
+  "description": "Ejercicios del día 07: Node.js y Express",
+  "type": "module",
+  "private": true,
+  "scripts": {
+    "basico": "node 01-basico-salud.js",
+    "intermedio": "node 02-intermedio-crud-memoria.js",
+    "avanzado": "node --env-file=.env 03-avanzado-crud-postgres.js"
+  },
+  "dependencies": {
+    "express": "^5.2.1",
+    "pg": "^8.23.1",
+    "zod": "^4.6.5"
+  }
+}

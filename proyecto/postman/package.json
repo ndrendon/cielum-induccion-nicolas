@@ -1,0 +1,14 @@
+{
+  "name": "proyecto-postman",
+  "version": "1.0.0",
+  "description": "Pruebas de la API del proyecto integrador con Postman y Newman (proyecto, parte 2)",
+  "private": true,
+  "scripts": {
+    "test:api": "newman run proyecto-api.postman_collection.json -e entornos/local.postman_environment.json -r cli,htmlextra --reporter-htmlextra-export reporte.html --reporter-htmlextra-title \"Pruebas de la API del proyecto\" --reporter-htmlextra-browserTitle \"Pruebas de la API del proyecto\"",
+    "test:api:docker": "newman run proyecto-api.postman_collection.json -e entornos/docker.postman_environment.json -r cli,htmlextra --reporter-htmlextra-export reporte-docker.html --reporter-htmlextra-title \"Pruebas de la API del proyecto (docker)\" --reporter-htmlextra-browserTitle \"Pruebas de la API del proyecto (docker)\""
+  },
+  "devDependencies": {
+    "newman": "^6.2.3",
+    "newman-reporter-htmlextra": "^1.23.1"
+  }
+}
