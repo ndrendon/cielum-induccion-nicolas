@@ -1,0 +1,38 @@
+# Ejercicio avanzado: Dockerfile mejorado para la API del proyecto.
+# - Multi-stage: dos etapas; la imagen final solo lleva lo necesario para correr la API.
+# - Usuario no root: la API corre con el usuario node, que no es administrador.
+# - Healthcheck: Docker revisa cada 10 segundos que la API responda en /salud.
+# - Imagen alpine: una versión de Linux muy liviana.
+#
+# Se construye desde la raíz del repo con:
+#   docker build -f semana-2/docker/Dockerfile.avanzado -t api:avanzado proyecto/api
+
+# ---- Etapa 1: instalar las librerías ----
+FROM node:24-alpine AS dependencias
+WORKDIR /app
+COPY package.json package-lock.json ./
+# Solo las librerías que la API necesita para funcionar (sin las de pruebas)
+RUN npm ci --omit=dev
+
+# ---- Etapa 2: la imagen final ----
+FROM node:24-alpine
+WORKDIR /app
+ENV NODE_ENV=production
+
+# De la etapa 1 solo se copian las librerías ya instaladas.
+# Todo lo demás de esa etapa (como la caché de npm) no llega a la imagen final.
+COPY --from=dependencias /app/node_modules ./node_modules
+COPY package.json ./
+COPY src ./src
+
+# A partir de aquí todo corre con el usuario node, que ya viene en la imagen de Node
+USER node
+
+EXPOSE 3000
+
+# Cada 10 segundos Docker llama a /salud dentro del contenedor.
+# Si responde bien, el contenedor queda "healthy"; si falla 3 veces seguidas, "unhealthy".
+HEALTHCHECK --interval=10s --timeout=3s --start-period=10s --retries=3 \
+  CMD node -e "fetch('http://localhost:3000/salud').then((r) => process.exit(r.ok ? 0 : 1)).catch(() => process.exit(1))"
+
+CMD ["node", "src/index.js"]
