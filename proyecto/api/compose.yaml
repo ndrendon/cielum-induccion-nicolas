@@ -1,0 +1,31 @@
+# Prende la API dentro de un contenedor de Docker.
+# Comandos (parado en proyecto/api):
+#   docker compose up -d --build   construye la imagen y prende el contenedor
+#   docker compose logs -f         muestra las peticiones que van llegando (Ctrl + C para salir)
+#   docker compose down            apaga y borra el contenedor
+#
+# La API del contenedor queda en http://localhost:3001, así que puede estar prendida
+# al mismo tiempo que la de npm run dev (http://localhost:3000).
+# Las dos usan la misma base de datos: la del contenedor pg-induccion.
+
+services:
+  api:
+    build: .
+    image: proyecto-api
+    container_name: api-proyecto
+    # Toma las variables del archivo .env (contraseña de PostgreSQL, secreto del JWT, etc.).
+    # format: raw hace que los valores se lean tal cual, aunque tengan el signo $
+    env_file:
+      - path: .env
+        format: raw
+    # Estas variables reemplazan a las del .env solo dentro del contenedor
+    environment:
+      PORT: "3000"
+      # Desde un contenedor, localhost es el mismo contenedor. host.docker.internal es el
+      # computador, donde está publicado el puerto 5432 del contenedor pg-induccion.
+      PGHOST: host.docker.internal
+    extra_hosts:
+      - "host.docker.internal:host-gateway"
+    ports:
+      # puerto del computador : puerto del contenedor
+      - "3001:3000"

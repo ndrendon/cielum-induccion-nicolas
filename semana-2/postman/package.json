@@ -1,0 +1,16 @@
+{
+  "name": "pruebas-postman",
+  "version": "1.0.0",
+  "description": "Ejercicios del día 08: pruebas de la API del proyecto con Postman y Newman",
+  "private": true,
+  "scripts": {
+    "probar:local": "newman run dia-08-api.postman_collection.json -e entornos/local.postman_environment.json",
+    "probar:docker": "newman run dia-08-api.postman_collection.json -e entornos/docker.postman_environment.json",
+    "lote": "newman run dia-08-lote-productos.postman_collection.json -e entornos/local.postman_environment.json -d datos/productos.csv -r cli,htmlextra --reporter-htmlextra-export reportes/reporte-lote-productos.html --reporter-htmlextra-title \"Lote de productos\" --reporter-htmlextra-browserTitle \"Lote de productos\"",
+    "reporte": "newman run dia-08-api.postman_collection.json -e entornos/local.postman_environment.json -r cli,htmlextra --reporter-htmlextra-export reportes/reporte-api.html --reporter-htmlextra-title \"Pruebas de la API\" --reporter-htmlextra-browserTitle \"Pruebas de la API\""
+  },
+  "devDependencies": {
+    "newman": "^6.2.3",
+    "newman-reporter-htmlextra": "^1.23.1"
+  }
+}
