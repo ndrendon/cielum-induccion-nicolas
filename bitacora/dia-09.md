@@ -2,7 +2,7 @@
 
 **Fecha:** 13-10-2026
 
-**Horas invertidas:** 7 h (autoinvestigación 2 h · práctica 2 h · reto 3 h)
+**Horas invertidas:** 6 h (autoinvestigación 2 h · práctica 2 h · reto 3 h)
 
 ## Autoinvestigación básica
 

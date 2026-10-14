@@ -1,7 +1,4 @@
 -- Modelo del proyecto integrador para la API (PostgreSQL).
--- Es el mismo modelo de la semana 1, más la tabla usuarios para el login.
--- Si las tablas ya existen, las borra y las vuelve a crear vacías.
--- CASCADE borra también las vistas que dependan de estas tablas.
 
 DROP TABLE IF EXISTS detalle_pedido CASCADE;
 DROP TABLE IF EXISTS pedidos CASCADE;

@@ -21,18 +21,18 @@ Todos los servidores usan el puerto 3000, así que se prenden de a uno. Para apa
 
 En la terminal: `cd semana-2/node-express` y `npm run basico`.
 
-- [ ] **GET** `http://localhost:3000/salud` → **200** con `"estado": "ok"` y la fecha.
+- [x] **GET** `http://localhost:3000/salud` → **200** con `"estado": "ok"` y la fecha.
 
 ## 2. Ejercicio intermedio (productos en memoria)
 
 En la terminal: `npm run intermedio`. Empieza con 3 productos; si se apaga y se vuelve a prender, vuelven los 3 del principio.
 
-- [ ] **GET** `http://localhost:3000/productos` → **200** con la lista de 3 productos.
-- [ ] **GET** `http://localhost:3000/productos/1` → **200** con el Teclado mecánico.
-- [ ] **GET** `http://localhost:3000/productos/99` → **404** con `"Producto no encontrado"`.
-- [ ] **POST** `http://localhost:3000/productos` con el cuerpo `{"nombre": "Parlante", "categoria": "Audio", "precio": 99000, "stock": 5}` → **201** con el producto nuevo y `"id": 4`.
-- [ ] **POST** `http://localhost:3000/productos` con el cuerpo `{"nombre": "Parlante"}` → **400** con `"La categoría es obligatoria"`.
-- [ ] **PUT** `http://localhost:3000/productos/4` con el cuerpo `{"nombre": "Parlante BT", "categoria": "Audio", "precio": 109000, "stock": 4}` → **200** con los cambios.
+- [x] **GET** `http://localhost:3000/productos` → **200** con la lista de 3 productos.
+- [x] **GET** `http://localhost:3000/productos/1` → **200** con el Teclado mecánico.
+- [x] **GET** `http://localhost:3000/productos/99` → **404** con `"Producto no encontrado"`.
+- [x] **POST** `http://localhost:3000/productos` con el cuerpo `{"nombre": "Parlante", "categoria": "Audio", "precio": 99000, "stock": 5}` → **201** con el producto nuevo y `"id": 4`.
+- [x] **POST** `http://localhost:3000/productos` con el cuerpo `{"nombre": "Parlante"}` → **400** con `"La categoría es obligatoria"`.
+- [x] **PUT** `http://localhost:3000/productos/4` con el cuerpo `{"nombre": "Parlante BT", "categoria": "Audio", "precio": 109000, "stock": 4}` → **200** con los cambios.
 - [ ] **DELETE** `http://localhost:3000/productos/4` → **204**, sin cuerpo.
 - [ ] **GET** `http://localhost:3000/productos/4` → **404**, porque ya se borró.
 
@@ -40,17 +40,17 @@ En la terminal: `npm run intermedio`. Empieza con 3 productos; si se apaga y se 
 
 En la terminal: `npm run avanzado`, con el contenedor `pg-induccion` prendido. Usa la tabla `productos` de la base `induccion`.
 
-- [ ] **GET** `http://localhost:3000/productos` → **200** con los productos de la tabla.
-- [ ] **GET** `http://localhost:3000/productos/1` → **200** con el Teclado mecánico.
-- [ ] **GET** `http://localhost:3000/productos/abc` → **400** con `"El id debe ser un número"` en `errores.id`.
-- [ ] **GET** `http://localhost:3000/productos/999` → **404** con `"Producto no encontrado"`.
-- [ ] **POST** `http://localhost:3000/productos` con el cuerpo `{"nombre": "Parlante", "categoria": "Audio", "precio": 99000, "stock": 5}` → **201**. Anotar el `id_producto` que devuelve.
-- [ ] **POST** `http://localhost:3000/productos` con el cuerpo `{"nombre": "", "precio": "caro", "stock": -1}` → **400** con un error para `nombre`, `categoria`, `precio` y `stock`.
-- [ ] **POST** `http://localhost:3000/productos` con el cuerpo mal escrito `{"nombre":` → **400** con `"El cuerpo de la petición no es un JSON válido"`.
-- [ ] **PUT** `http://localhost:3000/productos/ID` (cambiar `ID` por el número anotado) con el cuerpo `{"nombre": "Parlante BT", "categoria": "Audio", "precio": 109000, "stock": 4}` → **200** con los cambios.
-- [ ] **DELETE** `http://localhost:3000/productos/ID` → **204**, sin cuerpo.
-- [ ] **DELETE** `http://localhost:3000/productos/1` → **409** con `"No se puede borrar el producto porque ya está en pedidos"`.
-- [ ] **GET** `http://localhost:3000/nada` → **404** con `"No existe la ruta GET /nada"`.
+- [x] **GET** `http://localhost:3000/productos` → **200** con los productos de la tabla.
+- [x] **GET** `http://localhost:3000/productos/1` → **200** con el Teclado mecánico.
+- [x] **GET** `http://localhost:3000/productos/abc` → **400** con `"El id debe ser un número"` en `errores.id`.
+- [x] **GET** `http://localhost:3000/productos/999` → **404** con `"Producto no encontrado"`.
+- [x] **POST** `http://localhost:3000/productos` con el cuerpo `{"nombre": "Parlante", "categoria": "Audio", "precio": 99000, "stock": 5}` → **201**. Anotar el `id_producto` que devuelve.
+- [x] **POST** `http://localhost:3000/productos` con el cuerpo `{"nombre": "", "precio": "caro", "stock": -1}` → **400** con un error para `nombre`, `categoria`, `precio` y `stock`.
+- [x] **POST** `http://localhost:3000/productos` con el cuerpo mal escrito `{"nombre":` → **400** con `"El cuerpo de la petición no es un JSON válido"`.
+- [x] **PUT** `http://localhost:3000/productos/ID` (cambiar `ID` por el número anotado) con el cuerpo `{"nombre": "Parlante BT", "categoria": "Audio", "precio": 109000, "stock": 4}` → **200** con los cambios.
+- [x] **DELETE** `http://localhost:3000/productos/ID` → **204**, sin cuerpo.
+- [x] **DELETE** `http://localhost:3000/productos/1` → **409** con `"No se puede borrar el producto porque ya está en pedidos"`.
+- [x] **GET** `http://localhost:3000/nada` → **404** con `"No existe la ruta GET /nada"`.
 
 ## 4. API del proyecto
 

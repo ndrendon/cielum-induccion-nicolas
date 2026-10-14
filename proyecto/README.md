@@ -1,4 +1,40 @@
-# Proyecto integrador
+# Proyecto integrador backend
+
+API REST de una tienda: clientes, productos, pedidos con su detalle y login con JWT. Guarda los datos en PostgreSQL, se prueba con una colección de Postman de 135 pruebas y se prende completa en Docker con un solo comando.
+
+## Inicio rápido
+
+Con Docker Desktop prendido, en la terminal de VS Code, parado en esta carpeta (`proyecto`):
+
+1. Crear el `.env` y llenar las tres contraseñas (`POSTGRES_PASSWORD`, `JWT_SECRET` y `MSSQL_SA_PASSWORD`; las reglas de cada una están más abajo, en "Cómo prenderlo"):
+
+   ```powershell
+   Copy-Item .env.example .env
+   code .env
+   ```
+
+2. Prender todo:
+
+   ```powershell
+   docker compose up -d
+   ```
+
+3. Correr la colección de Postman contra la API de Docker:
+
+   ```powershell
+   cd postman
+   npm install
+   npm run test:api:docker
+   ```
+
+## Comprobar que todo funciona
+
+- [ ] `docker compose ps` muestra los cuatro contenedores `Up`, y `postgres`, `api` y `sqlserver` dicen `(healthy)`.
+- [ ] <http://localhost:3001/salud> responde `{"estado":"ok",...}`.
+- [ ] `npm run test:api:docker` termina con 135 pruebas y 0 fallidas, y deja `postman/reporte-docker.html`.
+- [ ] Adminer, en <http://localhost:8081>, muestra las cinco tablas de la base `proyecto`.
+
+## Qué hay en esta carpeta
 
 | Carpeta o archivo | Qué es |
 |---|---|

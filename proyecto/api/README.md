@@ -63,6 +63,8 @@ Si falta una variable en el `.env`, la API no prende y dice cuál falta.
 
 ## Correr la API con Docker
 
+> Para prender el **proyecto completo** (la API, su propia base PostgreSQL, SQL Server y Adminer) se usa `proyecto/docker-compose.yml`; los pasos están en [`../README.md`](../README.md). El `compose.yaml` de esta carpeta prende **solo la API**, conectada a `pg-induccion`. Los dos usan el puerto 3001, así que se prende uno o el otro.
+
 La API también se puede prender dentro de un contenedor de Docker. El contenedor queda en el puerto **3001**, así que puede estar prendido al mismo tiempo que la API de `npm run dev` (puerto 3000). Las dos usan la misma base de datos: la del contenedor `pg-induccion`.
 
 Antes se necesitan el `.env` (pasos 2 y 3) y la base creada con `npm run db:init` (paso 4).
