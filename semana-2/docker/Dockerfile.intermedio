@@ -1,0 +1,26 @@
+# Ejercicio intermedio: Dockerfile sencillo para la API del proyecto.
+# Funciona, pero la imagen queda grande:
+# - usa la imagen completa de Node (trae muchos programas que la API no necesita),
+# - instala todas las librerías, también las que solo sirven para las pruebas,
+# - y la API corre como root, el usuario administrador del contenedor.
+#
+# Se construye desde la raíz del repo con:
+#   docker build -f semana-2/docker/Dockerfile.intermedio -t api:intermedio proyecto/api
+
+# Imagen base: Node.js 24 completa
+FROM node:24
+
+# Carpeta de trabajo dentro de la imagen
+WORKDIR /app
+
+# Copia todo el código de la API (menos lo que dice proyecto/api/.dockerignore)
+COPY . .
+
+# Instala todas las librerías del package.json
+RUN npm install
+
+# Puerto en el que escucha la API
+EXPOSE 3000
+
+# Comando que prende la API cuando arranca el contenedor
+CMD ["node", "src/index.js"]

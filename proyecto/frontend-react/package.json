@@ -1,0 +1,25 @@
+{
+  "name": "frontend-react",
+  "private": true,
+  "version": "1.0.0",
+  "description": "Frontend en React del proyecto integrador (parte 4): login, pedidos con filtros y paginación, crear pedidos y cambiar su estado",
+  "type": "module",
+  "scripts": {
+    "dev": "vite",
+    "build": "vite build",
+    "lint": "oxlint",
+    "preview": "vite preview"
+  },
+  "dependencies": {
+    "react": "^19.2.8",
+    "react-dom": "^19.2.8",
+    "react-router": "^8.4.0"
+  },
+  "devDependencies": {
+    "@types/react": "^19.2.18",
+    "@types/react-dom": "^19.2.7",
+    "@vitejs/plugin-react": "^6.1.1",
+    "oxlint": "^1.81.0",
+    "vite": "^8.3.0"
+  }
+}
