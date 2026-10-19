@@ -87,6 +87,20 @@ services:
         # para que nginx encuentre el contenedor nuevo de la API
         restart: true
 
+  frontend-vue:
+    # Se construye con proyecto/frontend-vue/Dockerfile, igual que el de React:
+    # Node arma la página y nginx la sirve
+    build: ./frontend-vue
+    image: proyecto-frontend-vue
+    container_name: proyecto-frontend-vue
+    ports:
+      # En el computador queda en el 8082, porque el 8081 ya lo usa adminer
+      - "8082:80"
+    depends_on:
+      api:
+        condition: service_healthy
+        restart: true
+
   sqlserver:
     image: mcr.microsoft.com/mssql/server:2022-latest
     container_name: proyecto-sqlserver
