@@ -1,0 +1,29 @@
+// Función Deluge del proyecto integrador (parte 6).
+// Cuando se crea un trato (Deal), escribe el nombre del trato en el campo "Ultimo trato" de su contacto.
+//
+// Se ejecuta desde la regla de flujo de trabajo "Actualizar contacto al crear trato" del módulo Deals.
+// Argumento:
+//   dealId: el id del trato que disparó la regla. En la regla se mapea al campo "Deal Id" del módulo Deals.
+void automation.actualizar_contacto_del_trato(Int dealId)
+{
+	// 1. Traer el trato, solo con los campos que se necesitan
+	consulta = Map();
+	consulta.put("fields","Deal_Name,Contact_Name");
+	trato = zoho.crm.v8.getRecordById("Deals",dealId,consulta);
+	// 2. Contact_Name es un campo de búsqueda (lookup): trae el nombre y el id del contacto
+	contacto = trato.get("Contact_Name");
+	if(contacto == null)
+	{
+		// El trato no tiene contacto: no hay nada que actualizar
+		info "El trato " + dealId + " no tiene contacto. No se actualizó nada.";
+	}
+	else
+	{
+		// 3. Los datos que cambian en el contacto: el nombre de API del campo y su valor nuevo
+		datos = Map();
+		datos.put("Ultimo_trato",trato.get("Deal_Name"));
+		// 4. Actualizar el contacto. El id viene como texto, por eso se convierte a número con toLong()
+		respuesta = zoho.crm.v8.updateRecord("Contacts",contacto.get("id").toLong(),datos);
+		info respuesta;
+	}
+}
