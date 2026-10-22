@@ -1,0 +1,373 @@
+/* Estilos de la aplicación. Los colores y medidas están en variables para cambiarlos en un solo lugar. */
+:root {
+  --fondo: #f4f6f8;
+  --tarjeta: #ffffff;
+  --texto: #1d2733;
+  --texto-suave: #5b6876;
+  --borde: #d8dee5;
+  --primario: #1f6feb;
+  --primario-oscuro: #1858c0;
+  --exito: #1a7f37;
+  --error: #c62828;
+  --aviso: #9a6700;
+  --radio: 8px;
+  font-family: system-ui, -apple-system, 'Segoe UI', Roboto, sans-serif;
+  color: var(--texto);
+  background: var(--fondo);
+}
+
+* {
+  box-sizing: border-box;
+}
+
+body {
+  margin: 0;
+}
+
+h1 {
+  font-size: 1.5rem;
+  margin: 0 0 16px;
+}
+
+a {
+  color: var(--primario);
+}
+
+code {
+  font-size: 0.85em;
+  background: var(--fondo);
+  padding: 1px 4px;
+  border-radius: 4px;
+}
+
+/* Encabezado */
+.encabezado {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 16px 32px;
+  padding: 12px 24px;
+  background: var(--texto);
+  color: #fff;
+}
+
+.marca {
+  font-weight: 700;
+  font-size: 1.1rem;
+}
+
+.menu {
+  display: flex;
+  gap: 16px;
+}
+
+.menu a {
+  color: #c9d4df;
+  text-decoration: none;
+  padding: 4px 0;
+  border-bottom: 2px solid transparent;
+}
+
+.menu a.active {
+  color: #fff;
+  border-bottom-color: #fff;
+}
+
+.usuario {
+  margin-left: auto;
+  display: flex;
+  align-items: center;
+  gap: 12px;
+}
+
+.rol {
+  font-size: 0.8rem;
+  padding: 2px 8px;
+  border-radius: 999px;
+  background: rgba(255, 255, 255, 0.15);
+}
+
+/* Contenido */
+.contenido {
+  max-width: 1000px;
+  margin: 24px auto;
+  padding: 0 16px;
+}
+
+.tarjeta {
+  background: var(--tarjeta);
+  border: 1px solid var(--borde);
+  border-radius: var(--radio);
+  padding: 24px;
+}
+
+.tarjeta-angosta {
+  max-width: 420px;
+  margin: 48px auto;
+}
+
+.titulo-con-acciones {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  gap: 16px;
+  margin-bottom: 16px;
+}
+
+.titulo-con-acciones h1 {
+  margin: 0;
+}
+
+/* Botones */
+.boton {
+  display: inline-block;
+  border: 1px solid var(--primario);
+  background: var(--primario);
+  color: #fff;
+  padding: 8px 16px;
+  border-radius: var(--radio);
+  font: inherit;
+  text-decoration: none;
+  cursor: pointer;
+}
+
+.boton:hover:not(:disabled) {
+  background: var(--primario-oscuro);
+}
+
+.boton-secundario {
+  background: transparent;
+  color: var(--primario);
+}
+
+.boton-secundario:hover:not(:disabled) {
+  background: #e8f0fe;
+}
+
+.encabezado .boton-secundario {
+  color: #fff;
+  border-color: rgba(255, 255, 255, 0.5);
+}
+
+.encabezado .boton-secundario:hover {
+  background: rgba(255, 255, 255, 0.1);
+}
+
+.boton:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+}
+
+/* Formularios */
+.formulario {
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+}
+
+label {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+  font-weight: 600;
+  font-size: 0.9rem;
+}
+
+input,
+select {
+  font: inherit;
+  font-size: 1rem;
+  font-weight: 400;
+  padding: 8px 10px;
+  border: 1px solid var(--borde);
+  border-radius: var(--radio);
+  background: #fff;
+}
+
+.filtros {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 16px;
+  margin-bottom: 16px;
+}
+
+.lineas {
+  min-width: 0; /* sin esto, el fieldset crece con el texto largo de las opciones */
+  border: 1px solid var(--borde);
+  border-radius: var(--radio);
+  padding: 16px;
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+  align-items: flex-start;
+}
+
+.lineas legend {
+  font-weight: 600;
+  padding: 0 4px;
+}
+
+.linea {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) 90px 110px auto;
+  gap: 8px;
+  align-items: center;
+  width: 100%;
+}
+
+.linea select {
+  min-width: 0; /* deja que el selector se haga angosto en el celular */
+}
+
+.subtotal {
+  text-align: right;
+  color: var(--texto-suave);
+}
+
+.total {
+  margin: 0;
+  font-size: 1.1rem;
+}
+
+.cambio-estado {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: flex-end;
+  gap: 12px;
+  margin-top: 24px;
+}
+
+/* Tablas */
+/* En pantallas angostas la tabla se mueve de lado, sin salirse de la tarjeta */
+.tabla-contenedor {
+  overflow-x: auto;
+}
+
+.tabla {
+  width: 100%;
+  border-collapse: collapse;
+  margin-bottom: 16px;
+}
+
+.tabla th,
+.tabla td {
+  text-align: left;
+  padding: 10px 8px;
+  border-bottom: 1px solid var(--borde);
+}
+
+.tabla th {
+  font-size: 0.85rem;
+  color: var(--texto-suave);
+}
+
+.tabla .numero {
+  text-align: right;
+}
+
+.paginacion {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  color: var(--texto-suave);
+}
+
+.resumen {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(160px, 1fr));
+  gap: 16px;
+  margin: 0 0 24px;
+}
+
+.resumen dt {
+  font-size: 0.85rem;
+  color: var(--texto-suave);
+}
+
+.resumen dd {
+  margin: 4px 0 0;
+  font-weight: 600;
+}
+
+/* Estados de los pedidos */
+.estado {
+  display: inline-block;
+  padding: 2px 10px;
+  border-radius: 999px;
+  font-size: 0.85rem;
+  font-weight: 600;
+}
+
+.estado-pendiente {
+  background: #fff4d6;
+  color: #7a5200;
+}
+
+.estado-enviado {
+  background: #e3edff;
+  color: #1a4fb0;
+}
+
+.estado-entregado {
+  background: #dcf5e3;
+  color: #17602d;
+}
+
+.estado-cancelado {
+  background: #f3e1e1;
+  color: #8f1d1d;
+}
+
+/* Mensajes */
+.mensaje {
+  border-radius: var(--radio);
+  padding: 12px 16px;
+  margin-bottom: 16px;
+  border: 1px solid;
+}
+
+.mensaje p {
+  margin: 0;
+}
+
+.mensaje ul {
+  margin: 8px 0 0;
+  padding-left: 20px;
+}
+
+.mensaje-error {
+  color: var(--error);
+  background: #fdecec;
+  border-color: #f3c2c2;
+}
+
+.mensaje-exito {
+  color: var(--exito);
+  background: #e7f6ec;
+  border-color: #b7e2c4;
+}
+
+.mensaje-aviso {
+  color: var(--aviso);
+  background: #fff8e1;
+  border-color: #f0dc9c;
+}
+
+.ayuda,
+.cargando,
+.vacio {
+  color: var(--texto-suave);
+  font-size: 0.9rem;
+}
+
+@media (max-width: 640px) {
+  .linea {
+    grid-template-columns: 1fr 80px;
+  }
+
+  .titulo-con-acciones {
+    flex-direction: column;
+    align-items: flex-start;
+  }
+}

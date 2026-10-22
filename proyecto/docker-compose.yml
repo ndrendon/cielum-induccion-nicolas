@@ -1,4 +1,5 @@
-# Proyecto integrador, parte 3: todo el proyecto corriendo en Docker.
+# Proyecto integrador, partes 3 y 4: todo el proyecto corriendo en Docker,
+# con el frontend en React.
 #
 # Se prende desde esta carpeta (proyecto) con:
 #   docker compose up -d
@@ -6,6 +7,7 @@
 # Antes hay que crear el archivo .env a partir de .env.example (ver README.md).
 #
 # Servicios y puertos en el computador:
+#   frontend   http://localhost:8080   (la página en React: login y pedidos)
 #   api        http://localhost:3001   (la API del proyecto, la del entorno docker de Postman)
 #   postgres   localhost:5433          (PostgreSQL con la base proyecto)
 #   sqlserver  localhost:1434          (SQL Server 2022)
@@ -68,6 +70,22 @@ services:
       # La API no arranca hasta que el healthcheck de PostgreSQL salga bien
       postgres:
         condition: service_healthy
+
+  frontend:
+    # Se construye con proyecto/frontend-react/Dockerfile: Node arma la página y nginx la sirve
+    build: ./frontend-react
+    image: proyecto-frontend
+    container_name: proyecto-frontend
+    ports:
+      # nginx escucha en el puerto 80 del contenedor; en el computador queda en el 8080
+      - "8080:80"
+    depends_on:
+      # nginx le pasa las peticiones de /api al servicio api, así que la API debe estar lista primero
+      api:
+        condition: service_healthy
+        # Si la API se vuelve a crear (por ejemplo con --build), el frontend también se reinicia,
+        # para que nginx encuentre el contenedor nuevo de la API
+        restart: true
 
   sqlserver:
     image: mcr.microsoft.com/mssql/server:2022-latest
