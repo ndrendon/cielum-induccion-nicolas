@@ -100,7 +100,7 @@ Los archivos de Docker son tres:
 
 | Comando | Qué hace |
 |---|---|
-| `npm run db:init` | Crea la base `proyecto` (si no existe) y la llena con el modelo y los datos de ejemplo |
+| `npm run db:init` | Crea la base `proyecto` (si no existe) y la llena con el modelo, los datos de ejemplo y la tabla `log_integraciones` |
 | `npm run dev` | Prende la API y la reinicia sola al guardar cambios |
 | `npm start` | Prende la API |
 | `npm test` | Corre las pruebas automáticas |
@@ -228,6 +228,35 @@ Respuesta al crear un pedido (`201`):
 }
 ```
 
+## Aviso a n8n cuando se crea un pedido (parte 7)
+
+Cada vez que se crea un pedido, la API le manda un aviso al webhook de n8n que dice `N8N_WEBHOOK_URL`, con el secreto de `N8N_WEBHOOK_SECRET` en el encabezado `X-Webhook-Secret`. El workflow de n8n que lo recibe está en [`../n8n`](../n8n/README.md).
+
+Cuerpo del aviso (`POST`, JSON):
+
+```json
+{
+  "evento": "pedido.creado",
+  "pedido": {
+    "id_pedido": 13,
+    "fecha": "2026-10-21",
+    "estado": "pendiente",
+    "total": 135000,
+    "detalle": [
+      { "id_producto": 8, "producto": "Memoria USB 64 GB", "cantidad": 2, "precio_unitario": 35000, "subtotal": 70000 },
+      { "id_producto": 2, "producto": "Mouse inalámbrico", "cantidad": 1, "precio_unitario": 65000, "subtotal": 65000 }
+    ]
+  },
+  "cliente": { "id_cliente": 2, "nombre": "Luis Pérez", "email": "luis.perez@example.com", "ciudad": "Bogotá" }
+}
+```
+
+- El aviso **no frena la respuesta**: la API responde el `201` del pedido y avisa a n8n por detrás, sin `await`. Si n8n tarda o está apagado, quien creó el pedido no lo nota.
+- **Reintentos:** si n8n no responde en 5 segundos, no se puede conectar o responde un error 5xx, la API lo intenta otra vez después de 1 segundo y después de 2 segundos (3 intentos en total). Un 4xx no se reintenta, porque es un problema del secreto, del webhook o de los datos.
+- **Logs:** los primeros fallos salen como aviso (`Intento 1 de 3: ...`) y solo el último como error, para no llenar el log de errores que se arreglaron solos.
+- Si `N8N_WEBHOOK_URL` está vacía, la API no avisa a nadie y todo lo demás funciona igual.
+- El código está en `src/integraciones/n8n.js` y se llama desde `crear` en `src/servicios/pedidos.servicio.js`.
+
 ## Filtros y paginación de pedidos
 
 `GET /pedidos` recibe tres valores en la URL. Los tres son opcionales:
@@ -303,9 +332,11 @@ La colección usa la variable `base` con `http://localhost:3000`. Si la API corr
 npm test
 ```
 
-Corre 29 pruebas sobre todas las rutas: login, permisos, validaciones, CRUD, filtros, paginación, la transacción de los pedidos y los códigos de error.
+Corre 32 pruebas sobre todas las rutas: login, permisos, validaciones, CRUD, filtros, paginación, la transacción de los pedidos, los códigos de error y el aviso a n8n.
 
 Las pruebas usan otra base, `proyecto_test` (se cambia en `test/entorno-pruebas.js`). Esa base se crea sola y se vuelve a llenar en cada corrida, así que las pruebas no cambian los datos de la base `proyecto`. Usan la misma contraseña del `.env`.
+
+Para el aviso a n8n, las pruebas levantan un n8n falso en `http://127.0.0.1:3999`. Revisan que el aviso llegue con el pedido, el cliente y el secreto, que la API reintente si n8n responde 500 y que el pedido se cree sin esperar a n8n. Si el puerto 3999 está ocupado, esas pruebas fallan.
 
 ## Variables de entorno
 
@@ -318,6 +349,9 @@ Las pruebas usan otra base, `proyecto_test` (se cambia en `test/entorno-pruebas.
 | `JWT_SECRET` | Secreto para firmar los tokens (mínimo 16 caracteres) | vacío |
 | `JWT_EXPIRES_IN` | Cuánto dura un token | `1h` |
 | `CORS_ORIGIN` | Dirección del frontend que puede usar la API | `http://localhost:5173` |
+| `PGOPTIONS` | Opciones de la conexión a PostgreSQL. Con `-c timezone=America/Bogota`, los pedidos nuevos quedan con la fecha de Colombia | `-c timezone=America/Bogota` |
+| `N8N_WEBHOOK_URL` | Webhook de n8n que recibe cada pedido nuevo (parte 7). Si está vacía, no se avisa | vacío |
+| `N8N_WEBHOOK_SECRET` | Secreto que va en el encabezado `X-Webhook-Secret` (mínimo 16 caracteres si hay `N8N_WEBHOOK_URL`) | vacío |
 
 ## Estructura por capas
 
@@ -326,7 +360,8 @@ proyecto/api/
 ├── db/
 │   ├── 01_modelo.sql          Tablas: el modelo de la semana 1 más la tabla usuarios
 │   ├── 02_datos.sql           Datos de ejemplo y los dos usuarios de prueba
-│   ├── inicializar.js         Crea la base si no existe y ejecuta los dos archivos .sql
+│   ├── 03_integraciones.sql   La tabla log_integraciones, donde n8n registra lo que hace (parte 7)
+│   ├── inicializar.js         Crea la base si no existe y ejecuta los tres archivos .sql
 │   └── init.js                Lo que corre npm run db:init
 ├── postman/
 │   └── proyecto-api.postman_collection.json
@@ -340,6 +375,7 @@ proyecto/api/
 │   ├── controladores/         Validan lo que llega con zod y responden
 │   ├── servicios/             Reglas del negocio: stock, estados, transacciones
 │   ├── repositorios/          Las consultas SQL
+│   ├── integraciones/         El aviso a n8n cuando se crea un pedido (parte 7)
 │   ├── esquemas/              Esquemas de zod con las reglas de cada dato
 │   └── middlewares/           Login con JWT, roles, registro de peticiones y manejo de errores
 ├── test/

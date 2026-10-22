@@ -3,6 +3,7 @@
 
 import './entorno-pruebas.js';
 import assert from 'node:assert/strict';
+import http from 'node:http';
 import { after, before, describe, test } from 'node:test';
 import request from 'supertest';
 import { inicializarBase } from '../db/inicializar.js';
@@ -11,6 +12,41 @@ import { pool } from '../src/db.js';
 
 let tokenAdmin;
 let tokenVendedor;
+
+// n8n falso: recibe los avisos que la API manda al crear un pedido (parte 7).
+// Su dirección está en entorno-pruebas.js, y modoN8n dice cómo responde.
+const avisos = [];
+let modoN8n = 'ok';
+
+const n8nFalso = http.createServer((req, res) => {
+  let cuerpo = '';
+  req.on('data', (parte) => (cuerpo += parte));
+  req.on('end', () => {
+    const aviso = { cabeceras: req.headers, cuerpo: JSON.parse(cuerpo) };
+    avisos.push(aviso);
+    const vecesDelPedido = avisos.filter((otro) => otro.cuerpo.pedido.id_pedido === aviso.cuerpo.pedido.id_pedido).length;
+
+    if (modoN8n === 'falla-una-vez' && vecesDelPedido === 1) {
+      res.writeHead(500).end();
+    } else if (modoN8n === 'lento') {
+      setTimeout(() => res.writeHead(202).end(), 1500);
+    } else {
+      res.writeHead(202, { 'Content-Type': 'application/json' }).end('{"mensaje":"Pedido recibido"}');
+    }
+  });
+});
+
+// Espera hasta 3 s a que lleguen los avisos de un pedido
+async function avisosDe(idPedido, cuantos = 1) {
+  for (let vuelta = 0; vuelta < 60; vuelta++) {
+    const delPedido = avisos.filter((aviso) => aviso.cuerpo.pedido.id_pedido === idPedido);
+    if (delPedido.length >= cuantos) {
+      return delPedido;
+    }
+    await new Promise((resolver) => setTimeout(resolver, 50));
+  }
+  return avisos.filter((aviso) => aviso.cuerpo.pedido.id_pedido === idPedido);
+}
 
 async function iniciarSesion(email, password) {
   const respuesta = await request(app).post('/auth/login').send({ email, password });
@@ -23,6 +59,7 @@ async function stockDe(idProducto) {
 }
 
 before(async () => {
+  await new Promise((resolver) => n8nFalso.listen(3999, '127.0.0.1', resolver));
   await inicializarBase();
   tokenAdmin = await iniciarSesion('admin@cielum.test', 'Admin2026*');
   tokenVendedor = await iniciarSesion('vendedor@cielum.test', 'Vendedor2026*');
@@ -30,6 +67,7 @@ before(async () => {
 
 after(async () => {
   await pool.end();
+  await new Promise((resolver) => n8nFalso.close(resolver));
 });
 
 describe('Salud y rutas que no existen', () => {
@@ -365,5 +403,59 @@ describe('Pedidos: crear con transacción, cambiar estado y borrar', () => {
 
     const yaNoExiste = await request(app).get(`/pedidos/${id}`).set('Authorization', `Bearer ${tokenAdmin}`);
     assert.equal(yaNoExiste.status, 404);
+  });
+});
+
+describe('Aviso a n8n cuando se crea un pedido (parte 7)', () => {
+  test('manda a n8n el pedido y el cliente, con el secreto en el encabezado', async () => {
+    modoN8n = 'ok';
+    const respuesta = await request(app)
+      .post('/pedidos')
+      .set('Authorization', `Bearer ${tokenVendedor}`)
+      .send({ id_cliente: 2, detalle: [{ id_producto: 8, cantidad: 2 }] });
+    assert.equal(respuesta.status, 201);
+
+    const [aviso] = await avisosDe(respuesta.body.id_pedido);
+    assert.ok(aviso, 'n8n no recibió el aviso del pedido');
+    assert.equal(aviso.cabeceras['x-webhook-secret'], 'secreto-de-las-pruebas-123');
+    assert.equal(aviso.cuerpo.evento, 'pedido.creado');
+    assert.deepEqual(aviso.cuerpo.cliente, {
+      id_cliente: 2,
+      nombre: 'Luis Pérez',
+      email: 'luis.perez@example.com',
+      ciudad: 'Bogotá'
+    });
+    assert.equal(aviso.cuerpo.pedido.estado, 'pendiente');
+    assert.equal(aviso.cuerpo.pedido.total, 70000);
+    assert.deepEqual(aviso.cuerpo.pedido.detalle, [
+      { id_producto: 8, producto: 'Memoria USB 64 GB', cantidad: 2, precio_unitario: 35000, subtotal: 70000 }
+    ]);
+  });
+
+  test('si n8n responde con error 500, la API lo vuelve a intentar', async () => {
+    modoN8n = 'falla-una-vez';
+    const respuesta = await request(app)
+      .post('/pedidos')
+      .set('Authorization', `Bearer ${tokenVendedor}`)
+      .send({ id_cliente: 5, detalle: [{ id_producto: 8, cantidad: 1 }] });
+    assert.equal(respuesta.status, 201);
+
+    const recibidos = await avisosDe(respuesta.body.id_pedido, 2);
+    assert.equal(recibidos.length, 2, 'la API no reintentó después del error 500');
+  });
+
+  test('la API responde sin esperar a que n8n conteste', async () => {
+    modoN8n = 'lento'; // el n8n falso tarda 1,5 s en responder
+    const inicio = Date.now();
+    const respuesta = await request(app)
+      .post('/pedidos')
+      .set('Authorization', `Bearer ${tokenVendedor}`)
+      .send({ id_cliente: 6, detalle: [{ id_producto: 8, cantidad: 1 }] });
+    assert.equal(respuesta.status, 201);
+    assert.ok(Date.now() - inicio < 1500, 'la respuesta de la API esperó a n8n');
+
+    const [aviso] = await avisosDe(respuesta.body.id_pedido);
+    assert.ok(aviso, 'n8n no recibió el aviso del pedido');
+    modoN8n = 'ok';
   });
 });

@@ -2,3 +2,12 @@ node_modules/
 .env
 *.log
 .vscode/
+
+# Python (bots del día 14)
+.venv/
+__pycache__/
+
+# Lo que generan los bots y n8n al correr (día 14)
+proyecto/rpa/salida/
+proyecto/n8n/archivos/*
+!proyecto/n8n/archivos/.gitkeep

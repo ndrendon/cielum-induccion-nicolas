@@ -2,6 +2,7 @@
 
 import { enTransaccion } from '../db.js';
 import { ErrorHttp } from '../errores.js';
+import { avisarPedidoCreado } from '../integraciones/n8n.js';
 import * as clientesRepositorio from '../repositorios/clientes.repositorio.js';
 import * as pedidosRepositorio from '../repositorios/pedidos.repositorio.js';
 import * as productosRepositorio from '../repositorios/productos.repositorio.js';
@@ -57,7 +58,13 @@ export async function crear({ id_cliente, detalle }) {
     return id;
   });
 
-  return obtener(idPedido);
+  const pedido = await obtener(idPedido);
+
+  // Aviso a n8n sin await: el pedido ya está guardado y quien lo creó no tiene que esperar a n8n.
+  // avisarPedidoCreado nunca lanza errores; si n8n falla, solo queda el mensaje en el log.
+  void avisarPedidoCreado(pedido, cliente);
+
+  return pedido;
 }
 
 // Cambia el estado de un pedido. Si se cancela, le devuelve al stock las unidades del pedido.
