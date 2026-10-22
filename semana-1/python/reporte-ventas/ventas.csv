@@ -1,0 +1,201 @@
+﻿id_venta,fecha,cliente,ciudad,producto,cantidad,precio_unitario
+1,2026-01-13,Carlos Martínez,Medellín,Mouse inalámbrico,1,65000
+2,2026-02-14,Laura Ramírez,Medellín,Silla ergonómica,1,890000
+3,2026-04-30,Andrés Zapata,Medellín,Audífonos bluetooth,2,150000
+4,2026-08-03,Mateo Torres,Cali,Silla ergonómica,1,890000
+5,2026-08-05,Valentina López,Medellín,Monitor 24 pulgadas,3,720000
+6,17/02/2026,Juan Pérez,Bogotá,Mouse inalámbrico,3,65000
+7,2026-05-16,Ana Torres,Bogotá,Hub USB-C,4,95000
+8,2026-05-31,Laura García,Cali,Mouse inalámbrico,1,65000
+9,2026-04-27,Carlos Pérez,Bucaramanga,Teclado mecánico,1,180000
+10,2026-05-23,Camila García,Medellín,Disco SSD 1 TB,3,310000
+11,2026-05-17,Luis Zapata,Cali,Audífonos bluetooth,5,150000
+114,2026-08-26,Laura Zapata,Cali,Audífonos bluetooth,3,150000
+12,2026-03-25,Camila Ramírez,Medellín,Audífonos bluetooth,5,150000
+13,16-06-2026,Ana Martínez,Bucaramanga,Audífonos bluetooth,3,150000
+14,2026-05-18,Luis Martínez,Bucaramanga,Disco SSD 1 TB,5,310000
+15,2026-04-19,Camila Ramírez,Bucaramanga,Base para portátil,4,85000
+16,2026-05-16,Sofía Martínez,BARRANQUILLA,Monitor 24 pulgadas,5,720000
+17,2026-08-08,Laura Ramírez,Bogotá,Cámara web HD,2,120000
+18,2026-09-10,Luis Gómez,,Silla ergonómica,2,890000
+19,2026-08-05,Laura Pérez,Bogotá,Monitor 24 pulgadas,5,720000
+20,2026-09-28,Carlos Restrepo,Bucaramanga,Memoria USB 64 GB,1,35000
+21,2026-05-17,Valentina Pérez,Medellín,Mouse inalámbrico,2,65000
+22,2026-01-02,Carlos Restrepo,Barranquilla,Memoria USB 64 GB,5,35000
+23,2026-06-02,Andrés Zapata,Medellín,Mouse inalámbrico,3,65000
+24,2026-02-30,Ana Zapata,Bogotá,Monitor 24 pulgadas,1,720000
+25,2026-07-05,Carlos Martínez,Medellín,Mouse inalámbrico,5,65000
+26,2026-02-13,Camila Pérez,  Cartagena ,Mouse inalámbrico,5,65000
+27,2026-03-07,Camila Restrepo,Medellín,Monitor 24 pulgadas,5,720000
+28,2026-08-05,Mateo Restrepo,Barranquilla,Hub USB-C,2,95000
+29,2026-07-24,Valentina Torres,Bucaramanga,Cámara web HD,4,120000
+30,2026-05-07,Mateo Pérez,Bogotá,Mouse inalámbrico,5,65000
+31,2026-04-28,Laura Martínez,Medellín,Silla ergonómica,1,890000
+32,2026-13-05,Ana García,Medellín,Audífonos bluetooth,2,150000
+33,2026-09-06,Mateo Restrepo,Medellín,,5,120000
+34,2026-08-31,Mateo Torres,Barranquilla,Hub USB-C,2,95000
+35,2026-02-19,Juan García,Bogotá,Mouse inalámbrico,4,65000
+36,2026-02-20,Ana Ramírez,Barranquilla,Teclado mecánico,1,180000
+37,2026-04-09,Mateo Restrepo,Bogotá,Audífonos bluetooth,4,150000
+38,2026-05-23,Camila Martínez,Bucaramanga,Monitor 24 pulgadas,1,720000
+39,2026-02-20,Ana Restrepo,Bucaramanga,Memoria USB 64 GB,1,35000
+40,2026-03-27,Juan Torres,Bogotá,Audífonos bluetooth,4,150000
+41,2026-03-26,Juan Gómez,Cartagena,Teclado mecánico,3,180000
+42,2026-05-27,Juan Restrepo,Cali,Memoria USB 64 GB,4,35000
+43,2026-04-08,Carlos Martínez,Cartagena,Monitor 24 pulgadas,5,720000
+44,2026-02-01,Valentina Gómez,Medellín,Silla ergonómica,4,890000
+45,2026-09-29,Sofía Gómez,Cartagena,Silla ergonómica,1,890000
+46,2026-02-05,Laura Pérez,Cali,Monitor 24 pulgadas,2,720000
+47,2026-03-03,Laura Martínez,Cali,Disco SSD 1 TB,1,310000
+48,2026-02-11,Juan Zapata,Cali,Hub USB-C,3,95000
+49,sin fecha,Valentina Martínez,Medellín,Cámara web HD,2,120000
+50,2026-08-23,Valentina Pérez,Medellín,Cámara web HD,5,120000
+51,2026-02-21,Luis Restrepo,Medellín,Hub USB-C,3,95000
+52,2026-06-28,Luis Martínez,Bogotá,Monitor 24 pulgadas,2,720000
+53,2026-06-04,Laura Restrepo,,Memoria USB 64 GB,5,35000
+54,,Sofía López,Medellín,Cámara web HD,1,120000
+55,21/03/2026,Carlos López,Cali,Silla ergonómica,3,890000
+56,2026-05-16,Andrés Torres,,Audífonos bluetooth,1,150000
+147,2026-01-19,Camila Pérez,Bogotá,Silla ergonómica,3,890000
+57,2026-08-05,Carlos Gómez,Medellín,Mouse inalámbrico,2,65000
+58,2026-03-24,Camila Restrepo,Barranquilla,Cámara web HD,5,120000
+59,2026-02-27,Luis Rodríguez,Bogotá,Teclado mecánico,3,180000
+60,2026-03-17,Juan Rodríguez,Medellín,,3,95000
+61,2026-07-03,Mateo Martínez,Cali,Teclado mecánico,3,180000
+62,2026-07-28,Laura Rodríguez,Cartagena,Silla ergonómica,2,890000
+63,2026-04-01,Juan Gómez,,Monitor 24 pulgadas,3,720000
+64,2026-05-08,Carlos Rodríguez,Barranquilla,Disco SSD 1 TB,1,310000
+65,2026-01-20,Camila Martínez,Medellín,Disco SSD 1 TB,4,310000
+66,2026-06-06,Mateo Martínez,Medellín,Base para portátil,2,85000
+67,2026-06-18,Carlos Pérez,Cartagena,Disco SSD 1 TB,3,310000
+68,2026-09-18,Juan Restrepo,Bogotá,Base para portátil,1,85000
+69,2026-05-14,Sofía Zapata,Cartagena,Mouse inalámbrico,3,65000
+70,2026-02-25,Laura Ramírez,Bogotá,Teclado mecánico,3,180000
+71,2026-09-19,Luis Ramírez,bucaramanga,Disco SSD 1 TB,2,310000
+72,2026-01-23,Juan Gómez,Bogotá,Cámara web HD,5,120000
+73,2026-07-06,Juan Pérez,Cartagena,Audífonos bluetooth,3,150000
+74,2026-06-10,Luis López,Bogotá,Hub USB-C,4,95000
+75,2026-07-26,Carlos Restrepo,Medellín,Base para portátil,4,85000
+138,2026-03-14,Luis Gómez,Medellín,Cámara web HD,3,120000
+76,2026-03-31,Laura Zapata,Bogotá,Disco SSD 1 TB,5,310000
+77,2026-06-05,Carlos Martínez,Bogotá,Teclado mecánico,5,180000
+78,2026-06-14,Camila Torres,Bogotá,Hub USB-C,2,95000
+79,2026-08-31,Sofía Pérez,Medellín,Silla ergonómica,5,890000
+80,2026-02-17,Mateo López,Medellín,Base para portátil,2,85000
+81,2026-01-13,Ana Martínez,Cartagena,Monitor 24 pulgadas,5,720000
+82,2026-08-22,Juan Zapata,Medellín,Mouse inalámbrico,4,65000
+83,2026-07-24,Mateo Rodríguez,Cali,Memoria USB 64 GB,1,35000
+84,2026-08-06,Mateo Rodríguez,Barranquilla,Mouse inalámbrico,5,65000
+85,2026-01-26,Andrés Martínez,Bucaramanga,Memoria USB 64 GB,1,35000
+86,10/03/2026,Camila Restrepo,Cartagena,Memoria USB 64 GB,5,35000
+87,2026-08-15,Laura Restrepo,Bogotá,Base para portátil,5,85000
+88,2026-03-23,Camila Torres,Medellín,Memoria USB 64 GB,2,35000
+89,2026-09-24,Camila Martínez,Medellín,Cámara web HD,1,120000
+90,2026-05-01,Carlos García,Bogotá,Cámara web HD,5,120000
+91,2026-03-12,Sofía Martínez,Bogotá,Mouse inalámbrico,2,65000
+92,2026-02-02,Juan Ramírez,bogotá,Audífonos bluetooth,4,150000
+93,2026-02-01,Mateo Ramírez,BOGOTÁ,Disco SSD 1 TB,5,310000
+94,2026-07-14,Camila Gómez,Cartagena,Teclado mecánico,3,180000
+95,2026-08-03,Andrés Restrepo,  Barranquilla ,Disco SSD 1 TB,2,310000
+96,2026-04-23,Carlos Ramírez,Bogotá,Memoria USB 64 GB,4,35000
+97,2026-07-27,Sofía Torres,Bucaramanga,Base para portátil,5,85000
+98,2026-01-14,Juan Zapata,Cali,Silla ergonómica,1,890000
+99,2026-08-08,Sofía Torres,Medellín,Mouse inalámbrico,3,65000
+100,2026-06-17,Mateo Torres,Bogotá,Disco SSD 1 TB,4,310000
+101,2026-08-04,Carlos Pérez,Bogotá,Cámara web HD,5,120000
+102,2026-06-29,Mateo Pérez,BARRANQUILLA,Teclado mecánico,1,180000
+103,2026-05-07,Mateo Gómez,Cali,Teclado mecánico,2,180000
+104,2026-08-31,Luis Zapata,Cartagena,Monitor 24 pulgadas,4,720000
+105,2026-07-08,Sofía Zapata,Cali,Cámara web HD,1,120000
+106,2026-06-09,Luis Zapata,Medellín,Monitor 24 pulgadas,3,720000
+107,2026-07-12,Juan Martínez,Medellín,Hub USB-C,2,95000
+108,2026-06-04,Laura Pérez,Barranquilla,Mouse inalámbrico,5,65000
+109,2026-06-27,Andrés Ramírez,Cali,Teclado mecánico,1,180000
+110,2026-06-24,Ana Ramírez,Bucaramanga,Silla ergonómica,1,890000
+111,2026-07-05,Camila Rodríguez,Bogotá,Disco SSD 1 TB,5,310000
+112,2026-09-05,Camila Ramírez,Bucaramanga,Cámara web HD,5,120000
+113,2026-06-15,Mateo Pérez,Medellín,Cámara web HD,4,120000
+114,2026-08-26,Laura Zapata,Cali,Audífonos bluetooth,3,150000
+115,2026-09-11,Valentina Rodríguez,Bogotá,Teclado mecánico,3,180000
+116,2026-06-24,Carlos Zapata,Barranquilla,Cámara web HD,3,120000
+117,31/04/2026,Andrés Martínez,Medellín,Silla ergonómica,4,890000
+118,2026-05-04,Camila Torres,Bogotá,Memoria USB 64 GB,1,35000
+119,2026-05-31,Mateo Ramírez,Cali,Mouse inalámbrico,3,65000
+120,2026-07-08,Camila Restrepo,Bogotá,Hub USB-C,4,95000
+121,2026-06-19,Valentina Torres,Medellín,Silla ergonómica,3,890000
+122,2026-03-03,Mateo García,Medellín,Audífonos bluetooth,5,150000
+123,2026-04-09,Mateo Torres,Medellín,Monitor 24 pulgadas,5,720000
+124,2026-05-25,Luis Martínez,Medellín,Silla ergonómica,3,890000
+125,2026-06-04,Ana Restrepo,Medellín,Monitor 24 pulgadas,1,720000
+126,2026-05-30,Sofía Torres,Medellín,Teclado mecánico,1,180000
+127,2026-05-26,Camila Torres,Bogotá,Hub USB-C,2,95000
+128,2026-05-10,Camila Pérez,Bucaramanga,Teclado mecánico,4,180000
+21,2026-05-17,Valentina Pérez,Medellín,Mouse inalámbrico,2,65000
+129,2026-02-07,Laura Gómez,Medellín,Memoria USB 64 GB,5,35000
+130,2026-02-13,Mateo Pérez,Cali,Cámara web HD,4,120000
+36,2026-02-20,Ana Ramírez,Barranquilla,Teclado mecánico,1,180000
+131,2026-04-26,Andrés Ramírez,Bogotá,Hub USB-C,4,95000
+132,2026-08-08,Carlos Zapata,Cali,Cámara web HD,5,120000
+133,2026-04-17,Mateo López,Cali,Mouse inalámbrico,2,65000
+134,2026-03-30,Andrés Pérez,Medellín,Audífonos bluetooth,4,150000
+135,2026-08-29,Carlos Gómez,Medellín,Memoria USB 64 GB,3,35000
+136,2026-02-06,Mateo López,Barranquilla,Memoria USB 64 GB,5,35000
+137,2026-08-06,Luis Restrepo,Medellín,Audífonos bluetooth,2,150000
+138,2026-03-14,Luis Gómez,Medellín,Cámara web HD,3,120000
+139,2026-05-28,Camila Pérez,Bogotá,Hub USB-C,3,95000
+140,2026-05-20,Andrés Restrepo,BOGOTÁ,Disco SSD 1 TB,1,310000
+141,2026-01-21,Juan García,Cali,Hub USB-C,1,95000
+142,2026-04-28,Laura Zapata,Cartagena,,3,65000
+143,2026-01-21,Sofía Torres,Bogotá,Hub USB-C,4,95000
+144,2026-04-03,Laura Ramírez,Cali,Cámara web HD,4,120000
+145,2026-08-29,Valentina Ramírez,Bogotá,Mouse inalámbrico,1,
+146,2026-06-18,Juan Torres,Medellín,Monitor 24 pulgadas,4,720000
+147,2026-01-19,Camila Pérez,Bogotá,Silla ergonómica,3,890000
+148,2026-07-26,Andrés Gómez,Cali,Mouse inalámbrico,5,65000
+149,2026-07-31,Ana Martínez,Bogotá,Memoria USB 64 GB,5,35000
+150,2026-08-15,Ana Martínez,Medellín,Memoria USB 64 GB,2,35000
+151,2026-08-13,Camila Pérez,Medellín,Cámara web HD,5,
+152,2026-03-23,Carlos Restrepo,Medellín,Audífonos bluetooth,4,150000
+153,26/04/2026,Luis Torres,Cartagena,Mouse inalámbrico,2,65000
+154,2026-05-30,Andrés López,Bogotá,Memoria USB 64 GB,4,35000
+155,2026-05-05,Camila Restrepo,Medellín,Memoria USB 64 GB,2,35000
+137,2026-08-06,Luis Restrepo,Medellín,Audífonos bluetooth,2,150000
+156,2026-09-18,Sofía Pérez,Medellín,Hub USB-C,4,95000
+157,2026-09-17,Carlos Gómez,Medellín,Base para portátil,3,85000
+158,2026-09-08,Sofía Torres,Bogotá,Hub USB-C,3,95000
+159,2026-07-13,Camila García,Bucaramanga,Base para portátil,2,85000
+160,2026-07-16,Mateo Ramírez,Medellín,Hub USB-C,4,95000
+161,2026-07-17,Sofía Torres,Cartagena,Disco SSD 1 TB,2,310000
+162,2026-06-19,Luis Torres,Medellín,Silla ergonómica,4,890000
+163,2026-03-15,Juan Rodríguez,Medellín,Teclado mecánico,3,180000
+164,23/07/2026,Luis García,Bucaramanga,Base para portátil,5,85000
+184,2026-07-07,Luis Ramírez,Medellín,Disco SSD 1 TB,5,310000
+165,2026/06/12,Camila Restrepo,Medellín,Disco SSD 1 TB,1,310000
+166,2026-05-28,Mateo Pérez,BOGOTÁ,Audífonos bluetooth,1,150000
+167,2026-08-16,Sofía López,Bucaramanga,Mouse inalámbrico,1,65000
+168,2026-01-29,Carlos García,Bogotá,Base para portátil,2,85000
+169,2026-09-29,Juan Zapata,Cali,Audífonos bluetooth,2,150000
+170,31-03-2026,Luis Zapata,Bucaramanga,Monitor 24 pulgadas,5,720000
+171,2026-09-12,Laura Rodríguez,Medellín,Audífonos bluetooth,3,150000
+172,2026-05-11,Ana Torres,Bucaramanga,Memoria USB 64 GB,5,35000
+173,2026-02-07,Camila García,Cartagena,Monitor 24 pulgadas,3,720000
+174,2026-05-09,Camila López,Medellín,Disco SSD 1 TB,4,310000
+175,2026-02-24,Mateo Ramírez,Cali,Memoria USB 64 GB,5,35000
+176,2026-06-01,Ana Ramírez,medellín,Cámara web HD,5,120000
+177,2026-09-12,Carlos Martínez,Cali,Teclado mecánico,3,180000
+178,2026-04-08,Laura López,Cali,Audífonos bluetooth,2,150000
+179,2026-01-21,Carlos Torres,Medellín,Mouse inalámbrico,3,65000
+180,2026-02-16,Carlos García,Barranquilla,Monitor 24 pulgadas,2,720000
+181,2026-03-09,Andrés García,Bogotá,Audífonos bluetooth,3,150000
+182,2026-05-12,Camila López,Barranquilla,Monitor 24 pulgadas,3,720000
+159,2026-07-13,Camila García,Bucaramanga,Base para portátil,2,85000
+183,2026-08-28,Luis Rodríguez,Barranquilla,Mouse inalámbrico,2,65000
+184,2026-07-07,Luis Ramírez,Medellín,Disco SSD 1 TB,5,310000
+185,2026-08-21,Valentina López,Cali,Mouse inalámbrico,3,65000
+186,2026-04-30,Camila Gómez,Cali,Mouse inalámbrico,5,65000
+187,2026-04-24,Luis Torres,Bucaramanga,Base para portátil,3,85000
+188,2026-03-01,Sofía Gómez,Cartagena,Disco SSD 1 TB,3,310000
+189,2026-03-01,Luis Martínez,Bucaramanga,Memoria USB 64 GB,2,35000
+190,2026-08-21,Valentina Restrepo,Bogotá,Disco SSD 1 TB,2,310000
+191,2026-02-20,Camila Zapata,Bogotá,Disco SSD 1 TB,3,310000
+192,2026-07-09,Mateo Torres,Bogotá,Teclado mecánico,2,180000
