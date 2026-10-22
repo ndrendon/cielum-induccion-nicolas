@@ -1,0 +1,1629 @@
+{
+  "info": {
+    "name": "Proyecto API · colección completa",
+    "description": "Colección completa de la API del proyecto integrador: todas las rutas, con casos felices y casos de error (400, 401, 403, 404 y 409). Cada petición tiene pruebas del código de estado y de la estructura de la respuesta.\n\nAntes de usarla:\n1. Importar los entornos local y docker de la carpeta entornos.\n2. Escoger un entorno arriba a la derecha (local o docker).\n3. Correrla completa con Run collection, en orden: la carpeta 2. Login guarda los tokens en el entorno.\n\nDesde la terminal: npm run test:api (corre Newman y deja reporte.html).",
+    "schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json"
+  },
+  "auth": {
+    "type": "bearer",
+    "bearer": [
+      {
+        "key": "token",
+        "value": "{{token}}",
+        "type": "string"
+      }
+    ]
+  },
+  "event": [
+    {
+      "listen": "test",
+      "script": {
+        "type": "text/javascript",
+        "exec": [
+          "// Este script es de la colección: se ejecuta después de CADA petición.",
+          "// Las respuestas 204 no traen cuerpo; todas las demás deben ser JSON.",
+          "if (pm.response.code !== 204) {",
+          "  pm.test('La respuesta es JSON', () => {",
+          "    pm.expect(pm.response.headers.get('Content-Type')).to.include('application/json');",
+          "  });",
+          "}"
+        ]
+      }
+    }
+  ],
+  "variable": [
+    {
+      "key": "id_producto",
+      "value": ""
+    },
+    {
+      "key": "id_cliente",
+      "value": ""
+    },
+    {
+      "key": "email_nuevo",
+      "value": ""
+    },
+    {
+      "key": "id_pedido",
+      "value": ""
+    }
+  ],
+  "item": [
+    {
+      "name": "1. Salud",
+      "item": [
+        {
+          "name": "Salud",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('Responde 200', () => pm.response.to.have.status(200));",
+                  "",
+                  "pm.test('Trae el estado ok y la fecha', () => {",
+                  "  const datos = pm.response.json();",
+                  "  pm.expect(datos).to.have.all.keys('estado', 'fecha');",
+                  "  pm.expect(datos.estado).to.eql('ok');",
+                  "  pm.expect(Date.parse(datos.fecha)).to.not.be.NaN;",
+                  "});"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": "{{base_url}}/salud",
+            "auth": {
+              "type": "noauth"
+            }
+          }
+        }
+      ]
+    },
+    {
+      "name": "2. Login",
+      "item": [
+        {
+          "name": "Login vendedor",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('Responde 200', () => pm.response.to.have.status(200));",
+                  "",
+                  "pm.test('Trae el token y los datos del usuario', () => {",
+                  "  const datos = pm.response.json();",
+                  "  pm.expect(datos).to.have.all.keys('token', 'usuario');",
+                  "  pm.expect(datos.token).to.be.a('string').and.not.be.empty;",
+                  "  pm.expect(datos.usuario).to.have.all.keys('id_usuario', 'nombre', 'email', 'rol');",
+                  "  pm.expect(datos.usuario.rol).to.eql('vendedor');",
+                  "});",
+                  "",
+                  "// Guarda el token en el entorno para que las demás peticiones lo usen",
+                  "pm.environment.set('token', pm.response.json().token);"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "url": "{{base_url}}/auth/login",
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"email\": \"{{email_vendedor}}\",\n  \"password\": \"{{password_vendedor}}\"\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            },
+            "auth": {
+              "type": "noauth"
+            },
+            "description": "Usa el usuario de prueba del entorno y guarda el token en la variable token del entorno."
+          }
+        },
+        {
+          "name": "Login admin",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('Responde 200', () => pm.response.to.have.status(200));",
+                  "",
+                  "pm.test('El usuario es admin', () => {",
+                  "  pm.expect(pm.response.json().usuario.rol).to.eql('admin');",
+                  "});",
+                  "",
+                  "pm.environment.set('token_admin', pm.response.json().token);"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "url": "{{base_url}}/auth/login",
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"email\": \"{{email_admin}}\",\n  \"password\": \"{{password_admin}}\"\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            },
+            "auth": {
+              "type": "noauth"
+            },
+            "description": "Usa el usuario admin de prueba del entorno y guarda el token en la variable token_admin del entorno."
+          }
+        },
+        {
+          "name": "Login con contraseña mala (401)",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('Responde 401', () => pm.response.to.have.status(401));",
+                  "",
+                  "pm.test('Trae el mensaje del error', () => {",
+                  "  const datos = pm.response.json();",
+                  "  pm.expect(datos).to.have.property('mensaje');",
+                  "  pm.expect(datos.mensaje).to.eql(\"Correo o contraseña incorrectos\");",
+                  "});",
+                  "",
+                  "pm.test('No entrega token', () => {",
+                  "  pm.expect(pm.response.json()).to.not.have.property('token');",
+                  "});"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "url": "{{base_url}}/auth/login",
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"email\": \"{{email_vendedor}}\",\n  \"password\": \"otra\"\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            },
+            "auth": {
+              "type": "noauth"
+            }
+          }
+        },
+        {
+          "name": "Login con correo inválido (400)",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('Responde 400', () => pm.response.to.have.status(400));",
+                  "",
+                  "pm.test('Trae el mensaje del error', () => {",
+                  "  const datos = pm.response.json();",
+                  "  pm.expect(datos).to.have.property('mensaje');",
+                  "  pm.expect(datos.mensaje).to.eql(\"Los datos enviados no son válidos\");",
+                  "});",
+                  "",
+                  "pm.test('Dice qué campos fallan', () => {",
+                  "  const errores = pm.response.json().errores;",
+                  "  pm.expect(errores).to.have.all.keys('email', 'password');",
+                  "  pm.expect(errores.email).to.include('Escribe un correo válido');",
+                  "});"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "url": "{{base_url}}/auth/login",
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"email\": \"no-es-un-correo\",\n  \"password\": \"\"\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            },
+            "auth": {
+              "type": "noauth"
+            }
+          }
+        },
+        {
+          "name": "Perfil",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('Responde 200', () => pm.response.to.have.status(200));",
+                  "",
+                  "pm.test('Trae los datos del usuario del token', () => {",
+                  "  const datos = pm.response.json();",
+                  "  pm.expect(datos).to.have.all.keys('id_usuario', 'nombre', 'rol');",
+                  "  pm.expect(datos.rol).to.eql('vendedor');",
+                  "});"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": "{{base_url}}/auth/perfil"
+          }
+        },
+        {
+          "name": "Clientes sin token (401)",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('Responde 401', () => pm.response.to.have.status(401));",
+                  "",
+                  "pm.test('Trae el mensaje del error', () => {",
+                  "  const datos = pm.response.json();",
+                  "  pm.expect(datos).to.have.property('mensaje');",
+                  "  pm.expect(datos.mensaje).to.eql(\"Debes iniciar sesión para usar esta ruta\");",
+                  "});"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": "{{base_url}}/clientes",
+            "auth": {
+              "type": "noauth"
+            }
+          }
+        },
+        {
+          "name": "Perfil con un token falso (401)",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('Responde 401', () => pm.response.to.have.status(401));",
+                  "",
+                  "pm.test('Trae el mensaje del error', () => {",
+                  "  const datos = pm.response.json();",
+                  "  pm.expect(datos).to.have.property('mensaje');",
+                  "  pm.expect(datos.mensaje).to.eql(\"El token no es válido o ya venció\");",
+                  "});"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": "{{base_url}}/auth/perfil",
+            "auth": {
+              "type": "bearer",
+              "bearer": [
+                {
+                  "key": "token",
+                  "value": "esto-no-es-un-token",
+                  "type": "string"
+                }
+              ]
+            }
+          }
+        }
+      ]
+    },
+    {
+      "name": "3. Productos",
+      "item": [
+        {
+          "name": "Listar productos",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('Responde 200', () => pm.response.to.have.status(200));",
+                  "",
+                  "pm.test('Es una lista de productos', () => {",
+                  "  const productos = pm.response.json();",
+                  "  pm.expect(productos).to.be.an('array').that.is.not.empty;",
+                  "  productos.forEach((producto) => {",
+                  "    pm.expect(producto).to.have.all.keys(['id_producto', 'nombre', 'categoria', 'precio', 'stock']);",
+                  "    pm.expect(producto.id_producto).to.be.a('number');",
+                  "    pm.expect(producto.nombre).to.be.a('string');",
+                  "    pm.expect(producto.precio).to.be.a('number');",
+                  "    pm.expect(producto.stock).to.be.a('number');",
+                  "  });",
+                  "});"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": "{{base_url}}/productos",
+            "auth": {
+              "type": "noauth"
+            }
+          }
+        },
+        {
+          "name": "Ver producto",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('Responde 200', () => pm.response.to.have.status(200));",
+                  "",
+                  "pm.test('Es el producto 1 con la estructura esperada', () => {",
+                  "  const producto = pm.response.json();",
+                  "  pm.expect(producto).to.have.all.keys(['id_producto', 'nombre', 'categoria', 'precio', 'stock']);",
+                  "  pm.expect(producto.id_producto).to.be.a('number');",
+                  "  pm.expect(producto.nombre).to.be.a('string');",
+                  "  pm.expect(producto.precio).to.be.a('number');",
+                  "  pm.expect(producto.stock).to.be.a('number');",
+                  "  pm.expect(producto.id_producto).to.eql(1);",
+                  "});"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": "{{base_url}}/productos/1",
+            "auth": {
+              "type": "noauth"
+            }
+          }
+        },
+        {
+          "name": "Ver producto que no existe (404)",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('Responde 404', () => pm.response.to.have.status(404));",
+                  "",
+                  "pm.test('Trae el mensaje del error', () => {",
+                  "  const datos = pm.response.json();",
+                  "  pm.expect(datos).to.have.property('mensaje');",
+                  "  pm.expect(datos.mensaje).to.eql(\"Producto no encontrado\");",
+                  "});"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": "{{base_url}}/productos/99999",
+            "auth": {
+              "type": "noauth"
+            }
+          }
+        },
+        {
+          "name": "Ver producto con un id que no es número (400)",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('Responde 400', () => pm.response.to.have.status(400));",
+                  "",
+                  "pm.test('Trae el mensaje del error', () => {",
+                  "  const datos = pm.response.json();",
+                  "  pm.expect(datos).to.have.property('mensaje');",
+                  "  pm.expect(datos.mensaje).to.eql(\"Los datos enviados no son válidos\");",
+                  "});",
+                  "",
+                  "pm.test('El error es del id', () => {",
+                  "  pm.expect(pm.response.json().errores.id).to.include('El id debe ser un número');",
+                  "});"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": "{{base_url}}/productos/abc",
+            "auth": {
+              "type": "noauth"
+            }
+          }
+        },
+        {
+          "name": "Crear producto sin token (401)",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('Responde 401', () => pm.response.to.have.status(401));",
+                  "",
+                  "pm.test('Trae el mensaje del error', () => {",
+                  "  const datos = pm.response.json();",
+                  "  pm.expect(datos).to.have.property('mensaje');",
+                  "  pm.expect(datos.mensaje).to.eql(\"Debes iniciar sesión para usar esta ruta\");",
+                  "});"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "url": "{{base_url}}/productos",
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"nombre\": \"Producto sin sesión\",\n  \"categoria\": \"Accesorios\",\n  \"precio\": 1000,\n  \"stock\": 1\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            },
+            "auth": {
+              "type": "noauth"
+            }
+          }
+        },
+        {
+          "name": "Crear producto con JSON mal escrito (400)",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('Responde 400', () => pm.response.to.have.status(400));",
+                  "",
+                  "pm.test('Trae el mensaje del error', () => {",
+                  "  const datos = pm.response.json();",
+                  "  pm.expect(datos).to.have.property('mensaje');",
+                  "  pm.expect(datos.mensaje).to.eql(\"El cuerpo de la petición no es un JSON válido\");",
+                  "});"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "url": "{{base_url}}/productos",
+            "body": {
+              "mode": "raw",
+              "raw": "{ \"nombre\": \"Cámara\", ",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            },
+            "description": "El cuerpo está incompleto a propósito: le falta el resto del JSON."
+          }
+        },
+        {
+          "name": "Crear producto",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('Responde 201', () => pm.response.to.have.status(201));",
+                  "",
+                  "pm.test('Devuelve el producto creado', () => {",
+                  "  const producto = pm.response.json();",
+                  "  pm.expect(producto).to.have.all.keys(['id_producto', 'nombre', 'categoria', 'precio', 'stock']);",
+                  "  pm.expect(producto.id_producto).to.be.a('number');",
+                  "  pm.expect(producto.nombre).to.be.a('string');",
+                  "  pm.expect(producto.precio).to.be.a('number');",
+                  "  pm.expect(producto.stock).to.be.a('number');",
+                  "  pm.expect(producto.nombre).to.eql('Cámara web Full HD');",
+                  "  pm.expect(producto.precio).to.eql(150000);",
+                  "});",
+                  "",
+                  "// Guarda el id para actualizarlo y borrarlo en las siguientes peticiones",
+                  "pm.collectionVariables.set('id_producto', pm.response.json().id_producto);"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "url": "{{base_url}}/productos",
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"nombre\": \"Cámara web Full HD\",\n  \"categoria\": \"Periféricos\",\n  \"precio\": 150000,\n  \"stock\": 10\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            }
+          }
+        },
+        {
+          "name": "Crear producto con datos malos (400)",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('Responde 400', () => pm.response.to.have.status(400));",
+                  "",
+                  "pm.test('Trae el mensaje del error', () => {",
+                  "  const datos = pm.response.json();",
+                  "  pm.expect(datos).to.have.property('mensaje');",
+                  "  pm.expect(datos.mensaje).to.eql(\"Los datos enviados no son válidos\");",
+                  "});",
+                  "",
+                  "pm.test('Dice qué campos fallan', () => {",
+                  "  const errores = pm.response.json().errores;",
+                  "  pm.expect(errores).to.have.all.keys('nombre', 'precio', 'stock');",
+                  "  pm.expect(errores.precio).to.include('El precio debe ser mayor que 0');",
+                  "});"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "url": "{{base_url}}/productos",
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"nombre\": \"\",\n  \"categoria\": \"Periféricos\",\n  \"precio\": -5,\n  \"stock\": 1.5\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            }
+          }
+        },
+        {
+          "name": "Actualizar producto",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('Responde 200', () => pm.response.to.have.status(200));",
+                  "",
+                  "pm.test('Devuelve el producto con los cambios', () => {",
+                  "  const producto = pm.response.json();",
+                  "  pm.expect(producto).to.have.all.keys(['id_producto', 'nombre', 'categoria', 'precio', 'stock']);",
+                  "  pm.expect(producto.id_producto).to.be.a('number');",
+                  "  pm.expect(producto.nombre).to.be.a('string');",
+                  "  pm.expect(producto.precio).to.be.a('number');",
+                  "  pm.expect(producto.stock).to.be.a('number');",
+                  "  pm.expect(producto.id_producto).to.eql(Number(pm.collectionVariables.get('id_producto')));",
+                  "  pm.expect(producto.nombre).to.eql('Cámara web 4K');",
+                  "  pm.expect(producto.precio).to.eql(260000);",
+                  "});"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "PUT",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "url": "{{base_url}}/productos/{{id_producto}}",
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"nombre\": \"Cámara web 4K\",\n  \"categoria\": \"Periféricos\",\n  \"precio\": 260000,\n  \"stock\": 8\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            }
+          }
+        },
+        {
+          "name": "Borrar producto como vendedor (403)",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('Responde 403', () => pm.response.to.have.status(403));",
+                  "",
+                  "pm.test('Trae el mensaje del error', () => {",
+                  "  const datos = pm.response.json();",
+                  "  pm.expect(datos).to.have.property('mensaje');",
+                  "  pm.expect(datos.mensaje).to.eql(\"No tienes permiso para hacer esta acción\");",
+                  "});"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "DELETE",
+            "header": [],
+            "url": "{{base_url}}/productos/{{id_producto}}"
+          }
+        },
+        {
+          "name": "Borrar producto como admin",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('Responde 204', () => pm.response.to.have.status(204));",
+                  "",
+                  "pm.test('No trae cuerpo', () => {",
+                  "  pm.expect(pm.response.text()).to.eql(\"\");",
+                  "});"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "DELETE",
+            "header": [],
+            "url": "{{base_url}}/productos/{{id_producto}}",
+            "auth": {
+              "type": "bearer",
+              "bearer": [
+                {
+                  "key": "token",
+                  "value": "{{token_admin}}",
+                  "type": "string"
+                }
+              ]
+            }
+          }
+        }
+      ]
+    },
+    {
+      "name": "4. Clientes",
+      "item": [
+        {
+          "name": "Listar clientes",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('Responde 200', () => pm.response.to.have.status(200));",
+                  "",
+                  "pm.test('Es una lista de clientes', () => {",
+                  "  const clientes = pm.response.json();",
+                  "  pm.expect(clientes).to.be.an('array').that.is.not.empty;",
+                  "  clientes.forEach((cliente) => {",
+                  "    pm.expect(cliente).to.have.all.keys(['id_cliente', 'nombre', 'email', 'ciudad']);",
+                  "    pm.expect(cliente.email).to.include('@');",
+                  "  });",
+                  "});"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": "{{base_url}}/clientes"
+          }
+        },
+        {
+          "name": "Ver cliente",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('Responde 200', () => pm.response.to.have.status(200));",
+                  "",
+                  "pm.test('Es el cliente 1 con la estructura esperada', () => {",
+                  "  const cliente = pm.response.json();",
+                  "  pm.expect(cliente).to.have.all.keys(['id_cliente', 'nombre', 'email', 'ciudad']);",
+                  "  pm.expect(cliente.id_cliente).to.eql(1);",
+                  "});"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": "{{base_url}}/clientes/1"
+          }
+        },
+        {
+          "name": "Ver cliente que no existe (404)",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('Responde 404', () => pm.response.to.have.status(404));",
+                  "",
+                  "pm.test('Trae el mensaje del error', () => {",
+                  "  const datos = pm.response.json();",
+                  "  pm.expect(datos).to.have.property('mensaje');",
+                  "  pm.expect(datos.mensaje).to.eql(\"Cliente no encontrado\");",
+                  "});"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": "{{base_url}}/clientes/99999"
+          }
+        },
+        {
+          "name": "Crear cliente sin datos (400)",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('Responde 400', () => pm.response.to.have.status(400));",
+                  "",
+                  "pm.test('Trae el mensaje del error', () => {",
+                  "  const datos = pm.response.json();",
+                  "  pm.expect(datos).to.have.property('mensaje');",
+                  "  pm.expect(datos.mensaje).to.eql(\"Los datos enviados no son válidos\");",
+                  "});",
+                  "",
+                  "pm.test('Dice que faltan el nombre, el correo y la ciudad', () => {",
+                  "  pm.expect(pm.response.json().errores).to.have.all.keys('nombre', 'email', 'ciudad');",
+                  "});"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "url": "{{base_url}}/clientes",
+            "body": {
+              "mode": "raw",
+              "raw": "{}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            }
+          }
+        },
+        {
+          "name": "Crear cliente",
+          "event": [
+            {
+              "listen": "prerequest",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "// Script pre-request: se ejecuta ANTES de enviar la petición.",
+                  "// Crea un correo que no se repite (usa la fecha y hora en milisegundos)",
+                  "// y lo guarda en una variable de la colección para usarlo en el cuerpo.",
+                  "pm.collectionVariables.set('email_nuevo', `cliente${Date.now()}@example.com`);"
+                ]
+              }
+            },
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('Responde 201', () => pm.response.to.have.status(201));",
+                  "",
+                  "pm.test('Devuelve el cliente creado', () => {",
+                  "  const cliente = pm.response.json();",
+                  "  pm.expect(cliente).to.have.all.keys(['id_cliente', 'nombre', 'email', 'ciudad']);",
+                  "  pm.expect(cliente.email).to.eql(pm.collectionVariables.get('email_nuevo'));",
+                  "});",
+                  "",
+                  "pm.collectionVariables.set('id_cliente', pm.response.json().id_cliente);"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "url": "{{base_url}}/clientes",
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"nombre\": \"Carlos Pérez\",\n  \"email\": \"{{email_nuevo}}\",\n  \"ciudad\": \"Medellín\"\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            }
+          }
+        },
+        {
+          "name": "Crear cliente con correo repetido (409)",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('Responde 409', () => pm.response.to.have.status(409));",
+                  "",
+                  "pm.test('Trae el mensaje del error', () => {",
+                  "  const datos = pm.response.json();",
+                  "  pm.expect(datos).to.have.property('mensaje');",
+                  "  pm.expect(datos.mensaje).to.eql(\"Ya existe un cliente con ese correo\");",
+                  "});"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "url": "{{base_url}}/clientes",
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"nombre\": \"Otra Ana\",\n  \"email\": \"ana.gomez@example.com\",\n  \"ciudad\": \"Cali\"\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            }
+          }
+        },
+        {
+          "name": "Actualizar cliente",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('Responde 200', () => pm.response.to.have.status(200));",
+                  "",
+                  "pm.test('Devuelve el cliente con los cambios', () => {",
+                  "  const cliente = pm.response.json();",
+                  "  pm.expect(cliente).to.have.all.keys(['id_cliente', 'nombre', 'email', 'ciudad']);",
+                  "  pm.expect(cliente.nombre).to.eql('Carlos Andrés Pérez');",
+                  "  pm.expect(cliente.ciudad).to.eql('Bogotá');",
+                  "});"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "PUT",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "url": "{{base_url}}/clientes/{{id_cliente}}",
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"nombre\": \"Carlos Andrés Pérez\",\n  \"email\": \"{{email_nuevo}}\",\n  \"ciudad\": \"Bogotá\"\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            }
+          }
+        },
+        {
+          "name": "Borrar cliente con pedidos (409)",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('Responde 409', () => pm.response.to.have.status(409));",
+                  "",
+                  "pm.test('Trae el mensaje del error', () => {",
+                  "  const datos = pm.response.json();",
+                  "  pm.expect(datos).to.have.property('mensaje');",
+                  "  pm.expect(datos.mensaje).to.eql(\"No se puede borrar el cliente porque tiene pedidos\");",
+                  "});"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "DELETE",
+            "header": [],
+            "url": "{{base_url}}/clientes/1",
+            "auth": {
+              "type": "bearer",
+              "bearer": [
+                {
+                  "key": "token",
+                  "value": "{{token_admin}}",
+                  "type": "string"
+                }
+              ]
+            }
+          }
+        },
+        {
+          "name": "Borrar cliente como admin",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('Responde 204', () => pm.response.to.have.status(204));"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "DELETE",
+            "header": [],
+            "url": "{{base_url}}/clientes/{{id_cliente}}",
+            "auth": {
+              "type": "bearer",
+              "bearer": [
+                {
+                  "key": "token",
+                  "value": "{{token_admin}}",
+                  "type": "string"
+                }
+              ]
+            }
+          }
+        }
+      ]
+    },
+    {
+      "name": "5. Pedidos",
+      "item": [
+        {
+          "name": "Listar pedidos",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('Responde 200', () => pm.response.to.have.status(200));",
+                  "",
+                  "pm.test('Trae los datos y la información de la paginación', () => {",
+                  "  const respuesta = pm.response.json();",
+                  "  pm.expect(respuesta).to.have.all.keys('datos', 'pagina', 'limite', 'total', 'totalPaginas');",
+                  "  pm.expect(respuesta.pagina).to.eql(1);",
+                  "  pm.expect(respuesta.limite).to.eql(10);",
+                  "  pm.expect(respuesta.datos).to.be.an('array');",
+                  "  pm.expect(respuesta.datos.length).to.be.at.most(10);",
+                  "  respuesta.datos.forEach((pedido) => {",
+                  "    pm.expect(pedido).to.have.all.keys(['id_pedido', 'fecha', 'estado', 'id_cliente', 'cliente', 'total']);",
+                  "  });",
+                  "});"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": "{{base_url}}/pedidos"
+          }
+        },
+        {
+          "name": "Listar pedidos pendientes, página 1 de a 2",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('Responde 200', () => pm.response.to.have.status(200));",
+                  "",
+                  "pm.test('Trae máximo 2 pedidos y todos están pendientes', () => {",
+                  "  const respuesta = pm.response.json();",
+                  "  pm.expect(respuesta.datos.length).to.be.at.most(2);",
+                  "  respuesta.datos.forEach((pedido) => {",
+                  "    pm.expect(pedido.estado).to.eql('pendiente');",
+                  "  });",
+                  "});",
+                  "",
+                  "pm.test('La cantidad de páginas cuadra con el total', () => {",
+                  "  const respuesta = pm.response.json();",
+                  "  pm.expect(respuesta.totalPaginas).to.eql(Math.ceil(respuesta.total / respuesta.limite));",
+                  "});"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": "{{base_url}}/pedidos?estado=pendiente&pagina=1&limite=2"
+          }
+        },
+        {
+          "name": "Filtrar con un estado que no existe (400)",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('Responde 400', () => pm.response.to.have.status(400));",
+                  "",
+                  "pm.test('Trae el mensaje del error', () => {",
+                  "  const datos = pm.response.json();",
+                  "  pm.expect(datos).to.have.property('mensaje');",
+                  "  pm.expect(datos.mensaje).to.eql(\"Los datos enviados no son válidos\");",
+                  "});",
+                  "",
+                  "pm.test('El error es del campo estado', () => {",
+                  "  pm.expect(pm.response.json().errores).to.have.property('estado');",
+                  "});"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": "{{base_url}}/pedidos?estado=perdido"
+          }
+        },
+        {
+          "name": "Ver pedido con detalle",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('Responde 200', () => pm.response.to.have.status(200));",
+                  "",
+                  "pm.test('El pedido tiene la estructura esperada', () => {",
+                  "  const pedido = pm.response.json();",
+                  "  pm.expect(pedido).to.have.all.keys(['id_pedido', 'fecha', 'estado', 'id_cliente', 'cliente', 'total', 'detalle']);",
+                  "  pm.expect(pedido.fecha).to.match(/^\\d{4}-\\d{2}-\\d{2}$/);",
+                  "  pm.expect(pedido.detalle).to.be.an('array').that.is.not.empty;",
+                  "  pedido.detalle.forEach((linea) => {",
+                  "    pm.expect(linea).to.have.all.keys(['id_producto', 'producto', 'cantidad', 'precio_unitario', 'subtotal']);",
+                  "    pm.expect(linea.subtotal).to.eql(linea.cantidad * linea.precio_unitario);",
+                  "  });",
+                  "});",
+                  "",
+                  "pm.test('El total es la suma de los subtotales', () => {",
+                  "  const pedido = pm.response.json();",
+                  "  const suma = pedido.detalle.reduce((total, linea) => total + linea.subtotal, 0);",
+                  "  pm.expect(pedido.total).to.eql(suma);",
+                  "});"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": "{{base_url}}/pedidos/1"
+          }
+        },
+        {
+          "name": "Ver pedido que no existe (404)",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('Responde 404', () => pm.response.to.have.status(404));",
+                  "",
+                  "pm.test('Trae el mensaje del error', () => {",
+                  "  const datos = pm.response.json();",
+                  "  pm.expect(datos).to.have.property('mensaje');",
+                  "  pm.expect(datos.mensaje).to.eql(\"Pedido no encontrado\");",
+                  "});"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": "{{base_url}}/pedidos/99999"
+          }
+        },
+        {
+          "name": "Crear pedido sin productos (400)",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('Responde 400', () => pm.response.to.have.status(400));",
+                  "",
+                  "pm.test('Trae el mensaje del error', () => {",
+                  "  const datos = pm.response.json();",
+                  "  pm.expect(datos).to.have.property('mensaje');",
+                  "  pm.expect(datos.mensaje).to.eql(\"Los datos enviados no son válidos\");",
+                  "});",
+                  "",
+                  "pm.test('El error es del detalle', () => {",
+                  "  pm.expect(pm.response.json().errores.detalle).to.include('El pedido debe tener al menos un producto');",
+                  "});"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "url": "{{base_url}}/pedidos",
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"id_cliente\": 1,\n  \"detalle\": []\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            }
+          }
+        },
+        {
+          "name": "Crear pedido para un cliente que no existe (404)",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('Responde 404', () => pm.response.to.have.status(404));",
+                  "",
+                  "pm.test('Trae el mensaje del error', () => {",
+                  "  const datos = pm.response.json();",
+                  "  pm.expect(datos).to.have.property('mensaje');",
+                  "  pm.expect(datos.mensaje).to.eql(\"El cliente 99999 no existe\");",
+                  "});"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "url": "{{base_url}}/pedidos",
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"id_cliente\": 99999,\n  \"detalle\": [\n    {\n      \"id_producto\": 1,\n      \"cantidad\": 1\n    }\n  ]\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            }
+          }
+        },
+        {
+          "name": "Crear pedido",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('Responde 201', () => pm.response.to.have.status(201));",
+                  "",
+                  "pm.test('El pedido tiene la estructura esperada', () => {",
+                  "  const pedido = pm.response.json();",
+                  "  pm.expect(pedido).to.have.all.keys(['id_pedido', 'fecha', 'estado', 'id_cliente', 'cliente', 'total', 'detalle']);",
+                  "  pm.expect(pedido.fecha).to.match(/^\\d{4}-\\d{2}-\\d{2}$/);",
+                  "  pm.expect(pedido.detalle).to.be.an('array').that.is.not.empty;",
+                  "  pedido.detalle.forEach((linea) => {",
+                  "    pm.expect(linea).to.have.all.keys(['id_producto', 'producto', 'cantidad', 'precio_unitario', 'subtotal']);",
+                  "    pm.expect(linea.subtotal).to.eql(linea.cantidad * linea.precio_unitario);",
+                  "  });",
+                  "});",
+                  "",
+                  "pm.test('El total es la suma de los subtotales', () => {",
+                  "  const pedido = pm.response.json();",
+                  "  const suma = pedido.detalle.reduce((total, linea) => total + linea.subtotal, 0);",
+                  "  pm.expect(pedido.total).to.eql(suma);",
+                  "});",
+                  "",
+                  "pm.test('Empieza pendiente y con los 2 productos', () => {",
+                  "  const pedido = pm.response.json();",
+                  "  pm.expect(pedido.estado).to.eql('pendiente');",
+                  "  pm.expect(pedido.detalle).to.have.lengthOf(2);",
+                  "});",
+                  "",
+                  "pm.collectionVariables.set('id_pedido', pm.response.json().id_pedido);"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "url": "{{base_url}}/pedidos",
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"id_cliente\": 9,\n  \"detalle\": [\n    {\n      \"id_producto\": 8,\n      \"cantidad\": 2\n    },\n    {\n      \"id_producto\": 9,\n      \"cantidad\": 1\n    }\n  ]\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            }
+          }
+        },
+        {
+          "name": "Crear pedido sin stock (409)",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('Responde 409', () => pm.response.to.have.status(409));",
+                  "",
+                  "pm.test('Dice que no hay stock suficiente', () => {",
+                  "  pm.expect(pm.response.json().mensaje).to.include('No hay stock suficiente');",
+                  "});"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "url": "{{base_url}}/pedidos",
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"id_cliente\": 10,\n  \"detalle\": [\n    {\n      \"id_producto\": 2,\n      \"cantidad\": 1\n    },\n    {\n      \"id_producto\": 9,\n      \"cantidad\": 500\n    }\n  ]\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            },
+            "description": "No hay 500 sillas: no se guarda el pedido y el mouse tampoco se descuenta (ROLLBACK)."
+          }
+        },
+        {
+          "name": "Cambiar estado a enviado",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('Responde 200', () => pm.response.to.have.status(200));",
+                  "",
+                  "pm.test('El pedido quedó enviado', () => {",
+                  "  pm.expect(pm.response.json().estado).to.eql('enviado');",
+                  "});"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "PATCH",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "url": "{{base_url}}/pedidos/{{id_pedido}}/estado",
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"estado\": \"enviado\"\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            }
+          }
+        },
+        {
+          "name": "Cancelar pedido",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('Responde 200', () => pm.response.to.have.status(200));",
+                  "",
+                  "pm.test('El pedido quedó cancelado', () => {",
+                  "  pm.expect(pm.response.json().estado).to.eql('cancelado');",
+                  "});"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "PATCH",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "url": "{{base_url}}/pedidos/{{id_pedido}}/estado",
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"estado\": \"cancelado\"\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            },
+            "description": "Al cancelar, las unidades del pedido vuelven al stock."
+          }
+        },
+        {
+          "name": "Borrar pedido entregado (409)",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('Responde 409', () => pm.response.to.have.status(409));",
+                  "",
+                  "pm.test('Trae el mensaje del error', () => {",
+                  "  const datos = pm.response.json();",
+                  "  pm.expect(datos).to.have.property('mensaje');",
+                  "  pm.expect(datos.mensaje).to.eql(\"Solo se pueden borrar pedidos pendientes o cancelados\");",
+                  "});"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "DELETE",
+            "header": [],
+            "url": "{{base_url}}/pedidos/1",
+            "auth": {
+              "type": "bearer",
+              "bearer": [
+                {
+                  "key": "token",
+                  "value": "{{token_admin}}",
+                  "type": "string"
+                }
+              ]
+            }
+          }
+        },
+        {
+          "name": "Borrar pedido como admin",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('Responde 204', () => pm.response.to.have.status(204));"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "DELETE",
+            "header": [],
+            "url": "{{base_url}}/pedidos/{{id_pedido}}",
+            "auth": {
+              "type": "bearer",
+              "bearer": [
+                {
+                  "key": "token",
+                  "value": "{{token_admin}}",
+                  "type": "string"
+                }
+              ]
+            }
+          }
+        },
+        {
+          "name": "Ver el pedido borrado (404)",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('Responde 404', () => pm.response.to.have.status(404));",
+                  "",
+                  "pm.test('Trae el mensaje del error', () => {",
+                  "  const datos = pm.response.json();",
+                  "  pm.expect(datos).to.have.property('mensaje');",
+                  "  pm.expect(datos.mensaje).to.eql(\"Pedido no encontrado\");",
+                  "});"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": "{{base_url}}/pedidos/{{id_pedido}}"
+          }
+        }
+      ]
+    },
+    {
+      "name": "6. Rutas que no existen",
+      "item": [
+        {
+          "name": "Ruta que no existe (404)",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('Responde 404', () => pm.response.to.have.status(404));",
+                  "",
+                  "pm.test('Trae el mensaje del error', () => {",
+                  "  const datos = pm.response.json();",
+                  "  pm.expect(datos).to.have.property('mensaje');",
+                  "  pm.expect(datos.mensaje).to.eql(\"No existe la ruta GET /no-existe\");",
+                  "});"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": "{{base_url}}/no-existe",
+            "auth": {
+              "type": "noauth"
+            }
+          }
+        }
+      ]
+    }
+  ]
+}

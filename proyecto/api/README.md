@@ -61,6 +61,39 @@ cd proyecto/api
 
 Si falta una variable en el `.env`, la API no prende y dice cuál falta.
 
+## Correr la API con Docker
+
+La API también se puede prender dentro de un contenedor de Docker. El contenedor queda en el puerto **3001**, así que puede estar prendido al mismo tiempo que la API de `npm run dev` (puerto 3000). Las dos usan la misma base de datos: la del contenedor `pg-induccion`.
+
+Antes se necesitan el `.env` (pasos 2 y 3) y la base creada con `npm run db:init` (paso 4).
+
+```powershell
+docker compose up -d --build
+```
+
+- `up`: crea el contenedor `api-proyecto` y lo prende.
+- `-d`: lo deja corriendo por detrás, sin ocupar la terminal.
+- `--build`: construye primero la imagen con los pasos del `Dockerfile`. La primera vez se demora un poco más, porque descarga la imagen de Node.
+
+Para probarlo: <http://localhost:3001/salud>.
+
+| Comando | Qué hace |
+|---|---|
+| `docker compose up -d --build` | Construye la imagen y prende el contenedor |
+| `docker compose ps` | Muestra si el contenedor está prendido |
+| `docker compose logs -f` | Muestra las peticiones que van llegando (`Ctrl + C` para dejar de verlas) |
+| `docker compose down` | Apaga y borra el contenedor |
+
+- Si se cambia el código, hay que volver a correr `docker compose up -d --build` para que el contenedor tenga los cambios.
+- En los logs del contenedor sale `API escuchando en http://localhost:3000`, porque 3000 es el puerto de adentro del contenedor. Desde el computador se entra por el 3001.
+- Dentro de un contenedor, `localhost` es el mismo contenedor y no el computador. Por eso en `compose.yaml` la API del contenedor usa `PGHOST=host.docker.internal`, que es la dirección del computador vista desde un contenedor, donde `pg-induccion` tiene publicado el puerto 5432.
+
+Los archivos de Docker son tres:
+
+- `Dockerfile`: los pasos para construir la imagen de la API: parte de Node 24, instala las librerías y copia la carpeta `src`.
+- `.dockerignore`: lo que no se copia a la imagen, como `node_modules`, el `.env` y las pruebas.
+- `compose.yaml`: cómo se prende el contenedor: su nombre, el puerto `3001:3000`, las variables del `.env` y el `PGHOST` para llegar a PostgreSQL.
+
 ## Comandos
 
 | Comando | Qué hace |
@@ -69,6 +102,8 @@ Si falta una variable en el `.env`, la API no prende y dice cuál falta.
 | `npm run dev` | Prende la API y la reinicia sola al guardar cambios |
 | `npm start` | Prende la API |
 | `npm test` | Corre las pruebas automáticas |
+| `docker compose up -d --build` | Prende la API en Docker, en el puerto 3001 |
+| `docker compose down` | Apaga la API de Docker |
 
 ## Usuarios de prueba
 
@@ -250,6 +285,10 @@ Si los datos que se mandaron no son válidos, también viene `errores` con lo qu
 
 ## Probar con Postman
 
+La colección completa, con sus entornos `local` y `docker`, 135 pruebas, el comando `npm run test:api` (Newman) y los ejemplos con curl, está en la carpeta [`proyecto/postman`](../postman/README.md).
+
+La carpeta `postman/` de aquí tiene la colección sencilla del día 07:
+
 1. En Postman: **Import** y elegir el archivo `postman/proyecto-api.postman_collection.json`.
 2. Ejecutar primero **Login vendedor** y **Login admin**. Cada uno guarda su token solo, y las demás peticiones lo usan.
 3. Probar las peticiones de cada carpeta. También se pueden correr todas en orden con **Run collection**; cada petición revisa el código que debe responder.
@@ -304,7 +343,10 @@ proyecto/api/
 ├── test/
 │   ├── api.test.js            Pruebas automáticas
 │   └── entorno-pruebas.js     Cambia la base a proyecto_test antes de las pruebas
-└── .env.example               Plantilla de las variables
+├── .dockerignore              Lo que no se copia a la imagen de Docker
+├── .env.example               Plantilla de las variables
+├── compose.yaml               Cómo se prende la API en Docker (puerto 3001)
+└── Dockerfile                 Pasos para construir la imagen de Docker de la API
 ```
 
 Camino de una petición, por ejemplo `POST /pedidos`:
