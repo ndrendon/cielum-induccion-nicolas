@@ -1,0 +1,105 @@
+# Proyecto integrador, parte 3: todo el proyecto corriendo en Docker.
+#
+# Se prende desde esta carpeta (proyecto) con:
+#   docker compose up -d
+#
+# Antes hay que crear el archivo .env a partir de .env.example (ver README.md).
+#
+# Servicios y puertos en el computador:
+#   api        http://localhost:3001   (la API del proyecto, la del entorno docker de Postman)
+#   postgres   localhost:5433          (PostgreSQL con la base proyecto)
+#   sqlserver  localhost:1434          (SQL Server 2022)
+#   adminer    http://localhost:8081   (página para ver la base de PostgreSQL)
+
+name: proyecto
+
+services:
+  postgres:
+    image: postgres:16
+    container_name: proyecto-postgres
+    environment:
+      POSTGRES_USER: ${POSTGRES_USER:-postgres}
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD:?Falta POSTGRES_PASSWORD en el archivo proyecto/.env}
+      # Base que se crea sola la primera vez
+      POSTGRES_DB: proyecto
+    ports:
+      # 5433 en el computador, porque el 5432 ya lo usa pg-induccion
+      - "5433:5432"
+    volumes:
+      # Volumen: los datos de la base quedan guardados aunque se borre el contenedor
+      - datos-postgres:/var/lib/postgresql/data
+      # Scripts de inicialización: PostgreSQL los ejecuta en orden (01, 02) solo la primera
+      # vez, cuando el volumen está vacío. Crean las tablas y cargan los datos de ejemplo.
+      - ./api/db/01_modelo.sql:/docker-entrypoint-initdb.d/01_modelo.sql:ro
+      - ./api/db/02_datos.sql:/docker-entrypoint-initdb.d/02_datos.sql:ro
+    healthcheck:
+      # pg_isready revisa si PostgreSQL ya acepta conexiones
+      test: ["CMD-SHELL", "pg_isready -U $${POSTGRES_USER} -d $${POSTGRES_DB}"]
+      interval: 5s
+      timeout: 5s
+      retries: 10
+
+  api:
+    # Se construye con proyecto/api/Dockerfile
+    build: ./api
+    image: proyecto-api
+    container_name: proyecto-api
+    environment:
+      PORT: "3000"
+      # Dentro de la red de Compose, la base se encuentra por el nombre del servicio
+      PGHOST: postgres
+      PGPORT: "5432"
+      PGDATABASE: proyecto
+      PGUSER: ${POSTGRES_USER:-postgres}
+      PGPASSWORD: ${POSTGRES_PASSWORD:?Falta POSTGRES_PASSWORD en el archivo proyecto/.env}
+      JWT_SECRET: ${JWT_SECRET:?Falta JWT_SECRET en el archivo proyecto/.env}
+      JWT_EXPIRES_IN: ${JWT_EXPIRES_IN:-1h}
+      CORS_ORIGIN: ${CORS_ORIGIN:-http://localhost:5173}
+    ports:
+      - "3001:3000"
+    healthcheck:
+      # Llama a /salud dentro del contenedor; si responde bien, la API queda "healthy"
+      test: ["CMD", "node", "-e", "fetch('http://localhost:3000/salud').then((r) => process.exit(r.ok ? 0 : 1)).catch(() => process.exit(1))"]
+      interval: 10s
+      timeout: 3s
+      retries: 3
+      start_period: 10s
+    depends_on:
+      # La API no arranca hasta que el healthcheck de PostgreSQL salga bien
+      postgres:
+        condition: service_healthy
+
+  sqlserver:
+    image: mcr.microsoft.com/mssql/server:2022-latest
+    container_name: proyecto-sqlserver
+    environment:
+      ACCEPT_EULA: "Y"
+      MSSQL_SA_PASSWORD: ${MSSQL_SA_PASSWORD:?Falta MSSQL_SA_PASSWORD en el archivo proyecto/.env}
+    ports:
+      # 1434 en el computador, porque el 1433 ya lo usa el SQL Server del día 05
+      - "1434:1433"
+    volumes:
+      - datos-sqlserver:/var/opt/mssql
+    healthcheck:
+      # sqlcmd se conecta y ejecuta SELECT 1; -C acepta el certificado del servidor
+      test: ["CMD-SHELL", "/opt/mssql-tools18/bin/sqlcmd -S localhost -U sa -P \"$${MSSQL_SA_PASSWORD}\" -C -Q \"SELECT 1\" -b -o /dev/null"]
+      interval: 10s
+      timeout: 5s
+      retries: 10
+      start_period: 30s
+
+  adminer:
+    image: adminer
+    container_name: proyecto-adminer
+    environment:
+      # Servidor que aparece escrito en la pantalla de inicio de Adminer
+      ADMINER_DEFAULT_SERVER: postgres
+    ports:
+      - "8081:8080"
+    depends_on:
+      postgres:
+        condition: service_healthy
+
+volumes:
+  datos-postgres:
+  datos-sqlserver:
