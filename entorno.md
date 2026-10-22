@@ -1,4 +1,4 @@
-]633;E;{ echo "# Entorno de desarrollo"\x3b git --version\x3b node -v\x3b npm -v\x3b python --version\x3b docker --version\x3b } > entorno.md 2>&1;24d60ce0-9e2b-4c4f-afec-4ddb4dd80a3d]633;C# Entorno de desarrollo
+ echo "# Entorno de desarrollo"\x3b git --version\x3b node -v\x3b npm -v\x3b python --version\x3b docker --version\x3b } > entorno.md 2>&1;24d60ce0-9e2b-4c4f-afec-4ddb4dd80a3d # Entorno de desarrollo
 git version 2.56.0.windows.1
 v24.21.0
 11.19.0
