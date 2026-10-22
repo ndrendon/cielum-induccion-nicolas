@@ -1,0 +1,607 @@
+{
+  "name": "Pedido a Zoho CRM",
+  "nodes": [
+    {
+      "parameters": {
+        "content": "## Pedido a Zoho CRM (proyecto, parte 7)\n1. La API manda cada pedido nuevo a este webhook, con el secreto en el encabezado `X-Webhook-Secret`.\n2. **Validar pedido** revisa los datos. Si fallan, responde 400 y queda registrado como rechazado.\n3. Si están bien, responde 202 enseguida y busca el contacto en Zoho por el correo.\n4. Si ya existe lo actualiza; si no, lo crea.\n5. Registra el resultado en la tabla `log_integraciones` y manda un correo (se ve en Mailpit).",
+        "height": 260,
+        "width": 900
+      },
+      "id": "2764a0a1-d539-5de6-889e-9a927532673a",
+      "name": "Nota del flujo",
+      "type": "n8n-nodes-base.stickyNote",
+      "typeVersion": 1,
+      "position": [
+        -60,
+        -540
+      ]
+    },
+    {
+      "parameters": {
+        "content": "## Manejo de errores\n- Los nodos de Zoho tienen **On Error → Continue (using error output)**: si fallan, el item sigue por la salida de error hacia **Armar error**, que lo registra en el log y avisa por correo.\n- **Buscar** y **Actualizar** se reintentan 3 veces (**Retry On Fail**). **Crear** no, porque un POST repetido podría crear el contacto dos veces.\n- Si falla otra cosa (la base de datos o el correo), corre el Error Workflow **Aviso de errores**.",
+        "height": 260,
+        "width": 760,
+        "color": 3
+      },
+      "id": "520e2fe9-f59f-55d1-8a6b-c8ee44fdb8ad",
+      "name": "Nota de errores",
+      "type": "n8n-nodes-base.stickyNote",
+      "typeVersion": 1,
+      "position": [
+        1280,
+        -540
+      ]
+    },
+    {
+      "parameters": {
+        "httpMethod": "POST",
+        "path": "pedido-creado",
+        "authentication": "headerAuth",
+        "responseMode": "responseNode",
+        "options": {}
+      },
+      "id": "39d78174-6a9e-5039-88fe-16f9db8014e5",
+      "name": "Pedido creado",
+      "type": "n8n-nodes-base.webhook",
+      "typeVersion": 2.1,
+      "position": [
+        0,
+        0
+      ],
+      "webhookId": "5ef57f10-48b2-595c-9d48-128f49876104"
+    },
+    {
+      "parameters": {
+        "assignments": {
+          "assignments": [
+            {
+              "id": "2c1bd8a2-c3d3-558e-8620-c8fd328255fd",
+              "name": "zohoApi",
+              "value": "https://www.zohoapis.com",
+              "type": "string"
+            },
+            {
+              "id": "16d1ad2e-8892-55f1-b301-bbe488134dbf",
+              "name": "correoAvisos",
+              "value": "ventas@tienda.test",
+              "type": "string"
+            },
+            {
+              "id": "c9fe9560-fba8-5cc7-a5c9-597630dfd2ab",
+              "name": "correoRemitente",
+              "value": "n8n@tienda.test",
+              "type": "string"
+            }
+          ]
+        },
+        "includeOtherFields": true,
+        "options": {}
+      },
+      "id": "0cb12797-0a80-580f-b083-f88ec636b321",
+      "name": "Configuración",
+      "type": "n8n-nodes-base.set",
+      "typeVersion": 3.4,
+      "position": [
+        220,
+        0
+      ]
+    },
+    {
+      "parameters": {
+        "mode": "runOnceForEachItem",
+        "jsCode": "// Revisa que el aviso de la API traiga todo lo necesario antes de llamar a Zoho CRM.\n// Se ejecuta una vez por cada aviso que llega al webhook.\nconst cuerpo = $json.body ?? {};\nconst pedido = cuerpo.pedido ?? {};\nconst cliente = cuerpo.cliente ?? {};\nconst errores = [];\n\nif (cuerpo.evento !== 'pedido.creado') errores.push('El evento debe ser pedido.creado');\nif (!Number.isInteger(pedido.id_pedido) || pedido.id_pedido <= 0) errores.push('Falta el id del pedido');\nif (typeof cliente.nombre !== 'string' || cliente.nombre.trim() === '') errores.push('Falta el nombre del cliente');\nif (typeof cliente.email !== 'string' || !/^[^\\s@]+@[^\\s@]+\\.[^\\s@]+$/.test(cliente.email.trim())) {\n  errores.push('El correo del cliente no es válido');\n}\nif (!Array.isArray(pedido.detalle) || pedido.detalle.length === 0) errores.push('El pedido no tiene productos');\nif (typeof pedido.total !== 'number' || pedido.total <= 0) errores.push('El total del pedido debe ser mayor que 0');\n\n// Zoho pide el apellido (Last_Name). \"Ana Gómez\" queda como nombre \"Ana\" y apellido \"Gómez\"\nconst partes = String(cliente.nombre ?? '').trim().split(/\\s+/);\nconst nombre = partes.length > 1 ? partes[0] : '';\nconst apellido = partes.length > 1 ? partes.slice(1).join(' ') : partes[0];\n\nconst pesos = new Intl.NumberFormat('es-CO', { style: 'currency', currency: 'COP', maximumFractionDigits: 0 });\nconst total = typeof pedido.total === 'number' ? pesos.format(pedido.total) : '';\nconst productos = Array.isArray(pedido.detalle) ? pedido.detalle : [];\n\nreturn {\n  json: {\n    valido: errores.length === 0,\n    errores,\n    id_pedido: Number.isInteger(pedido.id_pedido) ? pedido.id_pedido : null,\n    pedido: { ...pedido, total_texto: total },\n    cliente: {\n      nombre: cliente.nombre ?? '',\n      email: String(cliente.email ?? '').trim().toLowerCase(),\n      ciudad: cliente.ciudad ?? '',\n      nombre_zoho: nombre,\n      apellido_zoho: apellido\n    },\n    // Lo que se escribe en el campo Descripción del contacto en Zoho\n    descripcion_zoho: `Último pedido: #${pedido.id_pedido} del ${pedido.fecha} por ${total} (${productos.length} ${productos.length === 1 ? 'producto' : 'productos'})`,\n    lineas_correo: productos.map((linea) => `- ${linea.cantidad} x ${linea.producto} = ${pesos.format(linea.subtotal)}`)\n  }\n};\n"
+      },
+      "id": "dd4a721e-1357-55cf-a405-631629f799fe",
+      "name": "Validar pedido",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        440,
+        0
+      ]
+    },
+    {
+      "parameters": {
+        "conditions": {
+          "options": {
+            "caseSensitive": true,
+            "leftValue": "",
+            "typeValidation": "strict",
+            "version": 2
+          },
+          "conditions": [
+            {
+              "id": "9382b48d-db25-50c7-8b01-4236eb713734",
+              "leftValue": "={{ $json.valido }}",
+              "rightValue": "",
+              "operator": {
+                "type": "boolean",
+                "operation": "true",
+                "singleValue": true
+              }
+            }
+          ],
+          "combinator": "and"
+        },
+        "options": {}
+      },
+      "id": "611578cb-e7e1-5a7d-b85b-20242aa29f4a",
+      "name": "¿Pedido válido?",
+      "type": "n8n-nodes-base.if",
+      "typeVersion": 2.2,
+      "position": [
+        660,
+        0
+      ]
+    },
+    {
+      "parameters": {
+        "respondWith": "json",
+        "responseBody": "={{ { mensaje: 'Pedido recibido', id_pedido: $json.id_pedido } }}",
+        "options": {
+          "responseCode": 202
+        }
+      },
+      "id": "66dce294-2212-555f-a03b-0a2256654816",
+      "name": "Responder recibido",
+      "type": "n8n-nodes-base.respondToWebhook",
+      "typeVersion": 1.1,
+      "position": [
+        900,
+        -100
+      ]
+    },
+    {
+      "parameters": {
+        "respondWith": "json",
+        "responseBody": "={{ { mensaje: 'Pedido rechazado', errores: $json.errores } }}",
+        "options": {
+          "responseCode": 400
+        }
+      },
+      "id": "dd4ddcfa-fd08-5ddf-91b5-3c9ffc781f71",
+      "name": "Responder rechazado",
+      "type": "n8n-nodes-base.respondToWebhook",
+      "typeVersion": 1.1,
+      "position": [
+        900,
+        220
+      ]
+    },
+    {
+      "parameters": {
+        "url": "={{ $('Configuración').first().json.zohoApi }}/crm/v8/Contacts/search",
+        "authentication": "predefinedCredentialType",
+        "nodeCredentialType": "zohoOAuth2Api",
+        "sendQuery": true,
+        "queryParameters": {
+          "parameters": [
+            {
+              "name": "email",
+              "value": "={{ $json.cliente.email }}"
+            }
+          ]
+        },
+        "options": {
+          "response": {
+            "response": {
+              "fullResponse": true
+            }
+          }
+        }
+      },
+      "id": "b4cdc80a-556a-5f7c-9f19-f1efe513cee7",
+      "name": "Buscar contacto en Zoho",
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.2,
+      "position": [
+        1120,
+        -100
+      ],
+      "retryOnFail": true,
+      "maxTries": 3,
+      "waitBetweenTries": 2000,
+      "onError": "continueErrorOutput"
+    },
+    {
+      "parameters": {
+        "conditions": {
+          "options": {
+            "caseSensitive": true,
+            "leftValue": "",
+            "typeValidation": "strict",
+            "version": 2
+          },
+          "conditions": [
+            {
+              "id": "d465ba24-9bf8-51d2-b918-ea342bb50c4d",
+              "leftValue": "={{ $json.statusCode }}",
+              "rightValue": 200,
+              "operator": {
+                "type": "number",
+                "operation": "equals"
+              }
+            }
+          ],
+          "combinator": "and"
+        },
+        "options": {}
+      },
+      "id": "84bf344f-18cf-5709-849a-419e3b021c66",
+      "name": "¿Ya existe en Zoho?",
+      "type": "n8n-nodes-base.if",
+      "typeVersion": 2.2,
+      "position": [
+        1340,
+        -120
+      ]
+    },
+    {
+      "parameters": {
+        "method": "PUT",
+        "url": "={{ $('Configuración').first().json.zohoApi }}/crm/v8/Contacts/{{ $json.body.data[0].id }}",
+        "authentication": "predefinedCredentialType",
+        "nodeCredentialType": "zohoOAuth2Api",
+        "sendBody": true,
+        "specifyBody": "json",
+        "jsonBody": "={{ JSON.stringify({ data: [{ Mailing_City: $('Validar pedido').item.json.cliente.ciudad, Description: $('Validar pedido').item.json.descripcion_zoho }] }) }}",
+        "options": {
+          "response": {
+            "response": {
+              "fullResponse": true
+            }
+          }
+        }
+      },
+      "id": "e08f6298-801d-5c40-bb55-a03374c22a0a",
+      "name": "Actualizar contacto",
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.2,
+      "position": [
+        1580,
+        -220
+      ],
+      "retryOnFail": true,
+      "maxTries": 3,
+      "waitBetweenTries": 2000,
+      "onError": "continueErrorOutput"
+    },
+    {
+      "parameters": {
+        "method": "POST",
+        "url": "={{ $('Configuración').first().json.zohoApi }}/crm/v8/Contacts",
+        "authentication": "predefinedCredentialType",
+        "nodeCredentialType": "zohoOAuth2Api",
+        "sendBody": true,
+        "specifyBody": "json",
+        "jsonBody": "={{ JSON.stringify({ data: [{ First_Name: $('Validar pedido').item.json.cliente.nombre_zoho, Last_Name: $('Validar pedido').item.json.cliente.apellido_zoho, Email: $('Validar pedido').item.json.cliente.email, Mailing_City: $('Validar pedido').item.json.cliente.ciudad, Description: $('Validar pedido').item.json.descripcion_zoho }] }) }}",
+        "options": {
+          "response": {
+            "response": {
+              "fullResponse": true
+            }
+          }
+        }
+      },
+      "id": "6d26ce65-ea87-56e6-bcf3-84d9770b5d67",
+      "name": "Crear contacto",
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.2,
+      "position": [
+        1580,
+        0
+      ],
+      "onError": "continueErrorOutput"
+    },
+    {
+      "parameters": {
+        "mode": "runOnceForEachItem",
+        "jsCode": "// Revisa lo que respondió Zoho y arma la fila del log y el correo.\n// Si Zoho no dice \"success\", se lanza un error y el item sigue por la salida de error.\nconst aviso = $('Validar pedido').item.json;\nconst fila = $json.body?.data?.[0];\n\nif (fila?.status !== 'success') {\n  throw new Error(`Zoho no guardó el contacto: ${fila?.code ?? 'sin código'} ${fila?.message ?? ''}`.trim());\n}\n\nconst resultado = $('Crear contacto').isExecuted ? 'creado' : 'actualizado';\nconst verbo = resultado === 'creado' ? 'se creó' : 'se actualizó';\n\nreturn {\n  json: {\n    id_pedido: aviso.id_pedido,\n    resultado,\n    email_cliente: aviso.cliente.email,\n    id_externo: String(fila.details.id),\n    mensaje: `Contacto ${resultado} en Zoho CRM con el pedido #${aviso.id_pedido}`,\n    asunto: `Pedido #${aviso.id_pedido}: el contacto ${verbo} en Zoho CRM`,\n    texto: [\n      `Se procesó el pedido #${aviso.id_pedido} del ${aviso.pedido.fecha}.`,\n      '',\n      `Cliente: ${aviso.cliente.nombre} (${aviso.cliente.email}), ${aviso.cliente.ciudad}`,\n      `Total: ${aviso.pedido.total_texto}`,\n      'Productos:',\n      ...aviso.lineas_correo,\n      '',\n      `Zoho CRM: el contacto ${verbo} (id ${fila.details.id}).`,\n      '',\n      'Este correo lo envió n8n con el workflow Pedido a Zoho CRM.'\n    ].join('\\n')\n  }\n};\n"
+      },
+      "id": "a85fb4e9-6978-56f1-84bd-fc40ff045690",
+      "name": "Armar resultado",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        1820,
+        -120
+      ],
+      "onError": "continueErrorOutput"
+    },
+    {
+      "parameters": {
+        "mode": "runOnceForEachItem",
+        "jsCode": "// Algo falló al hablar con Zoho (no responde, el token no sirve, rechazó los datos...).\n// $json.error trae lo que pasó. Se registra como error y se avisa por correo.\nconst aviso = $('Validar pedido').item.json;\nconst error = typeof $json.error === 'string' ? { message: $json.error } : ($json.error ?? {});\n\n// error.cause.message trae el código HTTP y lo que respondió Zoho, por ejemplo:\n// 401 - \"{\\\"code\\\":\\\"INVALID_TOKEN\\\",\\\"message\\\":\\\"invalid oauth token\\\",...}\"\nconst causa = String(error.cause?.message ?? '');\nconst codigoHttp = causa.match(/^(\\d{3}) - /)?.[1];\nlet codigoZoho;\ntry {\n  let respuesta = JSON.parse(causa.replace(/^\\d{3} - /, ''));\n  if (typeof respuesta === 'string') respuesta = JSON.parse(respuesta);\n  codigoZoho = respuesta.code ?? respuesta.data?.[0]?.code;\n} catch {\n  // la causa no traía JSON\n}\nconst detalle = [codigoHttp && `HTTP ${codigoHttp}`, codigoZoho, error.description || error.message]\n  .filter(Boolean)\n  .join(' · ') || 'Error desconocido';\n\nreturn {\n  json: {\n    id_pedido: aviso.id_pedido,\n    resultado: 'error',\n    email_cliente: aviso.cliente.email,\n    id_externo: null,\n    mensaje: detalle.slice(0, 1000),\n    asunto: `Error con el pedido #${aviso.id_pedido}: no se pudo pasar a Zoho CRM`,\n    texto: [\n      `No se pudo pasar el pedido #${aviso.id_pedido} a Zoho CRM.`,\n      '',\n      `Cliente: ${aviso.cliente.nombre} (${aviso.cliente.email})`,\n      `Error: ${detalle}`,\n      '',\n      `Revisa la ejecución ${$execution.id} en n8n (Executions) y vuelve a intentarlo.`\n    ].join('\\n')\n  }\n};\n"
+      },
+      "id": "fd1742cb-e001-5a23-a934-2e1ba792b684",
+      "name": "Armar error",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        1820,
+        140
+      ]
+    },
+    {
+      "parameters": {
+        "mode": "runOnceForEachItem",
+        "jsCode": "// El aviso no pasó la validación: se registra como rechazado y no se llama a Zoho\nconst aviso = $json;\nreturn {\n  json: {\n    id_pedido: aviso.id_pedido,\n    resultado: 'rechazado',\n    email_cliente: aviso.cliente.email || null,\n    id_externo: null,\n    mensaje: aviso.errores.join('; '),\n    asunto: `Pedido ${aviso.id_pedido ? '#' + aviso.id_pedido : 'sin id'} rechazado: no se envió a Zoho CRM`,\n    texto: [\n      'El aviso de un pedido no pasó la validación y no se envió a Zoho CRM.',\n      '',\n      'Pedido: ' + (aviso.id_pedido ?? 'sin id'),\n      'Correo del cliente: ' + (aviso.cliente.email || 'sin correo'),\n      'Errores:',\n      ...aviso.errores.map((error) => '- ' + error),\n      '',\n      'Ejecución de n8n: ' + $execution.id\n    ].join('\\n')\n  }\n};\n"
+      },
+      "id": "a6e278c6-05f5-5e77-b564-cebd74d7f564",
+      "name": "Armar rechazo",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        1120,
+        220
+      ]
+    },
+    {
+      "parameters": {},
+      "id": "621f8bc7-3668-5a3d-8194-3ebf76a21de9",
+      "name": "Resultado",
+      "type": "n8n-nodes-base.noOp",
+      "typeVersion": 1,
+      "position": [
+        2060,
+        0
+      ]
+    },
+    {
+      "parameters": {
+        "operation": "executeQuery",
+        "query": "INSERT INTO log_integraciones (id_pedido, resultado, email_cliente, id_externo, mensaje)\nVALUES ($1, $2, $3, $4, $5)\nRETURNING id_log;",
+        "options": {
+          "queryReplacement": "={{ [ $json.id_pedido, $json.resultado, $json.email_cliente, $json.id_externo, $json.mensaje ] }}"
+        }
+      },
+      "id": "487d4ea6-89e0-5c62-bee4-3e90ee467288",
+      "name": "Registrar en log_integraciones",
+      "type": "n8n-nodes-base.postgres",
+      "typeVersion": 2.6,
+      "position": [
+        2280,
+        0
+      ]
+    },
+    {
+      "parameters": {
+        "fromEmail": "={{ $('Configuración').first().json.correoRemitente }}",
+        "toEmail": "={{ $('Configuración').first().json.correoAvisos }}",
+        "subject": "={{ $('Resultado').item.json.asunto }}",
+        "emailFormat": "text",
+        "text": "={{ $('Resultado').item.json.texto }}",
+        "options": {
+          "appendAttribution": false
+        }
+      },
+      "id": "ea84f081-f83a-52aa-a9a2-e0eb838d4fdf",
+      "name": "Notificar por correo",
+      "type": "n8n-nodes-base.emailSend",
+      "typeVersion": 2.1,
+      "position": [
+        2500,
+        0
+      ],
+      "webhookId": "6c0f81ba-812c-5a72-936b-e981ba890ada"
+    }
+  ],
+  "pinData": {},
+  "connections": {
+    "Pedido creado": {
+      "main": [
+        [
+          {
+            "node": "Configuración",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Configuración": {
+      "main": [
+        [
+          {
+            "node": "Validar pedido",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Validar pedido": {
+      "main": [
+        [
+          {
+            "node": "¿Pedido válido?",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "¿Pedido válido?": {
+      "main": [
+        [
+          {
+            "node": "Responder recibido",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        [
+          {
+            "node": "Responder rechazado",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Responder recibido": {
+      "main": [
+        [
+          {
+            "node": "Buscar contacto en Zoho",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Responder rechazado": {
+      "main": [
+        [
+          {
+            "node": "Armar rechazo",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Buscar contacto en Zoho": {
+      "main": [
+        [
+          {
+            "node": "¿Ya existe en Zoho?",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        [
+          {
+            "node": "Armar error",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "¿Ya existe en Zoho?": {
+      "main": [
+        [
+          {
+            "node": "Actualizar contacto",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        [
+          {
+            "node": "Crear contacto",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Actualizar contacto": {
+      "main": [
+        [
+          {
+            "node": "Armar resultado",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        [
+          {
+            "node": "Armar error",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Crear contacto": {
+      "main": [
+        [
+          {
+            "node": "Armar resultado",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        [
+          {
+            "node": "Armar error",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Armar resultado": {
+      "main": [
+        [
+          {
+            "node": "Resultado",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        [
+          {
+            "node": "Armar error",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Armar error": {
+      "main": [
+        [
+          {
+            "node": "Resultado",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Armar rechazo": {
+      "main": [
+        [
+          {
+            "node": "Resultado",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Resultado": {
+      "main": [
+        [
+          {
+            "node": "Registrar en log_integraciones",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Registrar en log_integraciones": {
+      "main": [
+        [
+          {
+            "node": "Notificar por correo",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    }
+  },
+  "active": false,
+  "settings": {
+    "executionOrder": "v1"
+  },
+  "meta": {
+    "templateCredsSetupCompleted": false
+  },
+  "tags": []
+}

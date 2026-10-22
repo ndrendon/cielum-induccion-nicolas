@@ -1,0 +1,74 @@
+{
+  "name": "Aviso de errores",
+  "nodes": [
+    {
+      "parameters": {
+        "content": "## Aviso de errores\nEste es el **Error Workflow**. Corre solo cuando falla una ejecución de producción de otro workflow que lo tenga escogido en **Settings → Error workflow**.\n\nManda un correo con el workflow, el nodo y el error. Los correos se ven en Mailpit: http://localhost:8025",
+        "height": 240,
+        "width": 560
+      },
+      "id": "98b328ee-169c-53f7-bf20-4838c2e92a88",
+      "name": "Nota",
+      "type": "n8n-nodes-base.stickyNote",
+      "typeVersion": 1,
+      "position": [
+        -80,
+        -280
+      ]
+    },
+    {
+      "parameters": {},
+      "id": "16bc87b1-45b8-5cf6-aba0-c14856b4e7f8",
+      "name": "Cuando falle un workflow",
+      "type": "n8n-nodes-base.errorTrigger",
+      "typeVersion": 1,
+      "position": [
+        0,
+        0
+      ]
+    },
+    {
+      "parameters": {
+        "fromEmail": "n8n@tienda.test",
+        "toEmail": "soporte@tienda.test",
+        "subject": "=Falló el workflow \"{{ $json.workflow.name }}\"",
+        "emailFormat": "text",
+        "text": "={{ [\n  'Falló una ejecución en n8n.',\n  '',\n  'Workflow: ' + $json.workflow.name,\n  'Ejecución: ' + ($json.execution?.id ?? 'no alcanzó a empezar'),\n  'Nodo que falló: ' + ($json.execution?.lastNodeExecuted ?? $json.trigger?.error?.node?.name ?? 'el trigger'),\n  'Error: ' + ($json.execution?.error?.message ?? $json.trigger?.error?.message ?? 'sin mensaje'),\n  '',\n  'Ver la ejecución: ' + ($json.execution?.url ?? 'no hay enlace, falló el trigger'),\n].join('\\n') }}",
+        "options": {
+          "appendAttribution": false
+        }
+      },
+      "id": "7076579a-a6a2-5e41-b776-bc7dfec583a3",
+      "name": "Enviar el aviso por correo",
+      "type": "n8n-nodes-base.emailSend",
+      "typeVersion": 2.1,
+      "position": [
+        260,
+        0
+      ],
+      "webhookId": "36ba3e97-3e8c-595f-93b8-f81ccc30896c"
+    }
+  ],
+  "pinData": {},
+  "connections": {
+    "Cuando falle un workflow": {
+      "main": [
+        [
+          {
+            "node": "Enviar el aviso por correo",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    }
+  },
+  "active": false,
+  "settings": {
+    "executionOrder": "v1"
+  },
+  "meta": {
+    "templateCredsSetupCompleted": false
+  },
+  "tags": []
+}

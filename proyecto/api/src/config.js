@@ -11,7 +11,15 @@ const esquemaEntorno = z.object({
   JWT_SECRET: z.string().min(16, 'El secreto del JWT debe tener al menos 16 caracteres'),
   JWT_EXPIRES_IN: z.string().default('1h'),
   CORS_ORIGIN: z.string().default('http://localhost:5173'),
-  NODE_ENV: z.string().default('development')
+  NODE_ENV: z.string().default('development'),
+  // Webhook de n8n que recibe cada pedido nuevo (proyecto integrador, parte 7).
+  // Si se deja vacío, la API no avisa a nadie y todo lo demás funciona igual.
+  N8N_WEBHOOK_URL: z.union([z.url('N8N_WEBHOOK_URL debe ser una URL'), z.literal('')]).default(''),
+  // Secreto que la API manda en el encabezado X-Webhook-Secret, para que n8n sepa que el aviso es de ella
+  N8N_WEBHOOK_SECRET: z.string().default('')
+}).refine((entorno) => !entorno.N8N_WEBHOOK_URL || entorno.N8N_WEBHOOK_SECRET.length >= 16, {
+  path: ['N8N_WEBHOOK_SECRET'],
+  message: 'Si hay N8N_WEBHOOK_URL, N8N_WEBHOOK_SECRET debe tener al menos 16 caracteres'
 });
 
 const resultado = esquemaEntorno.safeParse(process.env);

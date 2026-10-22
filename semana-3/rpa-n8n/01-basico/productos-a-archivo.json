@@ -1,0 +1,119 @@
+{
+  "name": "Ejercicio básico: productos a un archivo",
+  "nodes": [
+    {
+      "parameters": {
+        "content": "## Ejercicio básico del día 14\nPide la lista de productos a la API del proyecto, la convierte en un archivo CSV y lo guarda en la carpeta compartida.\n\nEl archivo aparece en tu computador en `proyecto/n8n/archivos/productos.csv`.\n\nSe ejecuta con el botón **Execute workflow**.",
+        "height": 220,
+        "width": 620
+      },
+      "id": "79e94983-2ef6-55f2-96a1-86ba236e62e7",
+      "name": "Nota",
+      "type": "n8n-nodes-base.stickyNote",
+      "typeVersion": 1,
+      "position": [
+        -80,
+        -260
+      ]
+    },
+    {
+      "parameters": {},
+      "id": "b4588d58-484e-5e5d-9b84-cd13562afa33",
+      "name": "Ejecutar a mano",
+      "type": "n8n-nodes-base.manualTrigger",
+      "typeVersion": 1,
+      "position": [
+        0,
+        0
+      ]
+    },
+    {
+      "parameters": {
+        "url": "http://api:3000/productos",
+        "options": {}
+      },
+      "id": "4097c11c-01f2-578c-b5ad-00cba6372426",
+      "name": "Pedir los productos a la API",
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.2,
+      "position": [
+        240,
+        0
+      ]
+    },
+    {
+      "parameters": {
+        "options": {
+          "fileName": "productos.csv"
+        }
+      },
+      "id": "f0754460-4e30-5a11-8198-d575d574758e",
+      "name": "Convertir a CSV",
+      "type": "n8n-nodes-base.convertToFile",
+      "typeVersion": 1.1,
+      "position": [
+        480,
+        0
+      ]
+    },
+    {
+      "parameters": {
+        "operation": "write",
+        "fileName": "/home/node/.n8n-files/productos.csv",
+        "options": {}
+      },
+      "id": "381d1ecf-e792-51cb-8649-fb32ed9ba6ef",
+      "name": "Guardar el archivo",
+      "type": "n8n-nodes-base.readWriteFile",
+      "typeVersion": 1,
+      "position": [
+        720,
+        0
+      ]
+    }
+  ],
+  "pinData": {},
+  "connections": {
+    "Ejecutar a mano": {
+      "main": [
+        [
+          {
+            "node": "Pedir los productos a la API",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Pedir los productos a la API": {
+      "main": [
+        [
+          {
+            "node": "Convertir a CSV",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Convertir a CSV": {
+      "main": [
+        [
+          {
+            "node": "Guardar el archivo",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    }
+  },
+  "active": false,
+  "settings": {
+    "executionOrder": "v1"
+  },
+  "meta": {
+    "templateCredsSetupCompleted": false
+  },
+  "tags": []
+}

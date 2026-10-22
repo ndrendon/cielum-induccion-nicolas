@@ -21,10 +21,11 @@ export async function inicializarBase() {
   }
   await conexionPrincipal.end();
 
-  // 2. Conectarse a la base del proyecto y ejecutar los dos archivos SQL, en orden
+  // 2. Conectarse a la base del proyecto y ejecutar los archivos SQL, en orden.
+  //    03_integraciones.sql crea la tabla log_integraciones que usa n8n (parte 7).
   const conexion = new pg.Client();
   await conexion.connect();
-  for (const archivo of ['01_modelo.sql', '02_datos.sql']) {
+  for (const archivo of ['01_modelo.sql', '02_datos.sql', '03_integraciones.sql']) {
     const sql = await readFile(new URL(archivo, import.meta.url), 'utf8');
     await conexion.query(sql);
   }

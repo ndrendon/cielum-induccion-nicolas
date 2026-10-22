@@ -1,0 +1,71 @@
+{
+  "name": "Ejercicio avanzado: flujo que falla",
+  "nodes": [
+    {
+      "parameters": {
+        "content": "## Flujo que falla a propósito\nPide los pedidos a la API **sin token**, así que la API responde 401 y el nodo falla.\n\nPara probar el Error Workflow:\n1. En **Settings → Error workflow** escoge **Aviso de errores**.\n2. Publica este workflow.\n3. Abre http://localhost:5678/webhook/probar-error en el navegador.",
+        "height": 260,
+        "width": 600
+      },
+      "id": "1d2fbf1f-1240-5b39-bcf3-f8701dcae9f1",
+      "name": "Nota",
+      "type": "n8n-nodes-base.stickyNote",
+      "typeVersion": 1,
+      "position": [
+        -80,
+        -300
+      ]
+    },
+    {
+      "parameters": {
+        "path": "probar-error",
+        "options": {}
+      },
+      "id": "e37bcdca-c78e-5c08-9f96-c78e386fa717",
+      "name": "Webhook de prueba",
+      "type": "n8n-nodes-base.webhook",
+      "typeVersion": 2.1,
+      "position": [
+        0,
+        0
+      ],
+      "webhookId": "14ba161a-b731-5483-8cbf-84f1a2231047"
+    },
+    {
+      "parameters": {
+        "url": "http://api:3000/pedidos",
+        "options": {}
+      },
+      "id": "3bcf0aec-8acf-50a9-8b60-db9c871ca862",
+      "name": "Pedir pedidos sin token",
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.2,
+      "position": [
+        260,
+        0
+      ]
+    }
+  ],
+  "pinData": {},
+  "connections": {
+    "Webhook de prueba": {
+      "main": [
+        [
+          {
+            "node": "Pedir pedidos sin token",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    }
+  },
+  "active": false,
+  "settings": {
+    "executionOrder": "v1"
+  },
+  "meta": {
+    "templateCredsSetupCompleted": false
+  },
+  "tags": []
+}
