@@ -1,0 +1,603 @@
+{
+  "info": {
+    "_postman_id": "9c90e5a5-f66f-52e3-9e60-f32108a96f13",
+    "name": "Zoho CRM · Leads (ejercicio avanzado)",
+    "description": "Ejercicio avanzado del día 13: crear, consultar, actualizar y buscar leads con la API v8 de Zoho CRM. Antes de cada petición, la colección renueva sola el access token con el refresh token cuando ya venció. Los valores secretos van en el entorno, en Current value, y nunca se suben a Git.",
+    "schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json"
+  },
+  "auth": {
+    "type": "apikey",
+    "apikey": [
+      {
+        "key": "key",
+        "value": "Authorization",
+        "type": "string"
+      },
+      {
+        "key": "value",
+        "value": "Zoho-oauthtoken {{access_token}}",
+        "type": "string"
+      },
+      {
+        "key": "in",
+        "value": "header",
+        "type": "string"
+      }
+    ]
+  },
+  "event": [
+    {
+      "listen": "prerequest",
+      "script": {
+        "type": "text/javascript",
+        "exec": [
+          "// Se ejecuta antes de cada petición de la colección.",
+          "// Si el access token ya venció, o le falta menos de 1 minuto, pide uno nuevo con el refresh token",
+          "// y lo guarda en el entorno. Así no hay que renovarlo a mano cada hora.",
+          "const url = pm.request.url.toString();",
+          "if (url.includes('/oauth/v2/token')) {",
+          "  return; // las peticiones de tokens no usan el access token",
+          "}",
+          "",
+          "const refreshToken = pm.environment.get('refresh_token');",
+          "const vence = Number(pm.environment.get('token_vence') || 0);",
+          "const yaVencio = Date.now() > vence - 60 * 1000;",
+          "",
+          "if (!refreshToken) {",
+          "  console.warn('No hay refresh_token en el entorno: corre primero \"Cambiar el grant token por tokens\".');",
+          "  return;",
+          "}",
+          "",
+          "if (yaVencio) {",
+          "  pm.sendRequest(",
+          "    {",
+          "      url: pm.environment.get('accounts_url') + '/oauth/v2/token',",
+          "      method: 'POST',",
+          "      body: {",
+          "        mode: 'urlencoded',",
+          "        urlencoded: [",
+          "          { key: 'refresh_token', value: refreshToken },",
+          "          { key: 'client_id', value: pm.environment.get('client_id') },",
+          "          { key: 'client_secret', value: pm.environment.get('client_secret') },",
+          "          { key: 'grant_type', value: 'refresh_token' },",
+          "        ],",
+          "      },",
+          "    },",
+          "    (error, respuesta) => {",
+          "      if (error) {",
+          "        console.error('No se pudo renovar el access token:', error);",
+          "        return;",
+          "      }",
+          "      const datos = respuesta.json();",
+          "      if (!datos.access_token) {",
+          "        console.error('Zoho no devolvió un access token nuevo:', datos);",
+          "        return;",
+          "      }",
+          "      pm.environment.set('access_token', datos.access_token);",
+          "      pm.environment.set('token_vence', String(Date.now() + datos.expires_in * 1000));",
+          "      console.log('Access token renovado con el refresh token');",
+          "    },",
+          "  );",
+          "}"
+        ]
+      }
+    },
+    {
+      "listen": "test",
+      "script": {
+        "type": "text/javascript",
+        "exec": [
+          "// Se ejecuta después de cada petición: si Zoho responde un error de token, lo explica en la consola",
+          "if (pm.response.code === 401) {",
+          "  console.warn('Zoho respondió 401: el access token no sirve. Revisa el entorno o vuelve a generar los tokens.');",
+          "}"
+        ]
+      }
+    }
+  ],
+  "variable": [
+    {
+      "key": "lead_email",
+      "value": "prueba.postman@example.com",
+      "type": "string"
+    },
+    {
+      "key": "lead_id",
+      "value": "",
+      "type": "string"
+    }
+  ],
+  "item": [
+    {
+      "name": "0. Tokens",
+      "description": "Peticiones a Zoho Accounts para obtener y renovar los tokens de OAuth. No usan el access token.",
+      "item": [
+        {
+          "name": "Cambiar el grant token por tokens",
+          "request": {
+            "method": "POST",
+            "header": [],
+            "url": {
+              "raw": "{{accounts_url}}/oauth/v2/token",
+              "host": [
+                "{{accounts_url}}"
+              ],
+              "path": [
+                "oauth",
+                "v2",
+                "token"
+              ]
+            },
+            "description": "Cambia el grant token que se generó en el Self Client (api-console.zoho.com, pestaña Generate Code) por un access token y un refresh token, y los guarda en el entorno. El grant token es de un solo uso y vence en pocos minutos.",
+            "auth": {
+              "type": "noauth"
+            },
+            "body": {
+              "mode": "urlencoded",
+              "urlencoded": [
+                {
+                  "key": "grant_type",
+                  "value": "authorization_code",
+                  "type": "text"
+                },
+                {
+                  "key": "client_id",
+                  "value": "{{client_id}}",
+                  "type": "text"
+                },
+                {
+                  "key": "client_secret",
+                  "value": "{{client_secret}}",
+                  "type": "text"
+                },
+                {
+                  "key": "code",
+                  "value": "{{grant_token}}",
+                  "type": "text"
+                }
+              ]
+            }
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "const datos = pm.response.json();",
+                  "",
+                  "pm.test('Zoho devolvió el access token y el refresh token', () => {",
+                  "  // Si el código ya se usó o venció, Zoho responde 200 pero con { \"error\": \"invalid_code\" }",
+                  "  pm.expect(datos.error, 'Zoho respondió: ' + datos.error).to.be.undefined;",
+                  "  pm.expect(datos).to.have.property('access_token');",
+                  "  pm.expect(datos).to.have.property('refresh_token');",
+                  "});",
+                  "",
+                  "if (datos.access_token) {",
+                  "  pm.environment.set('access_token', datos.access_token);",
+                  "  pm.environment.set('refresh_token', datos.refresh_token);",
+                  "  // api_domain es el dominio de la API que le corresponde a la cuenta, según su data center",
+                  "  pm.environment.set('api_domain', datos.api_domain);",
+                  "  pm.environment.set('token_vence', String(Date.now() + datos.expires_in * 1000));",
+                  "  // El grant token es de un solo uso: se borra para no volver a mandarlo",
+                  "  pm.environment.set('grant_token', '');",
+                  "}"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "Renovar el access token",
+          "request": {
+            "method": "POST",
+            "header": [],
+            "url": {
+              "raw": "{{accounts_url}}/oauth/v2/token",
+              "host": [
+                "{{accounts_url}}"
+              ],
+              "path": [
+                "oauth",
+                "v2",
+                "token"
+              ]
+            },
+            "description": "Pide un access token nuevo con el refresh token. La colección ya lo hace sola antes de cada petición cuando el token venció; esta petición sirve para hacerlo a mano.",
+            "auth": {
+              "type": "noauth"
+            },
+            "body": {
+              "mode": "urlencoded",
+              "urlencoded": [
+                {
+                  "key": "refresh_token",
+                  "value": "{{refresh_token}}",
+                  "type": "text"
+                },
+                {
+                  "key": "client_id",
+                  "value": "{{client_id}}",
+                  "type": "text"
+                },
+                {
+                  "key": "client_secret",
+                  "value": "{{client_secret}}",
+                  "type": "text"
+                },
+                {
+                  "key": "grant_type",
+                  "value": "refresh_token",
+                  "type": "text"
+                }
+              ]
+            }
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "const datos = pm.response.json();",
+                  "",
+                  "pm.test('Zoho devolvió un access token nuevo', () => {",
+                  "  pm.expect(datos.error, 'Zoho respondió: ' + datos.error).to.be.undefined;",
+                  "  pm.expect(datos).to.have.property('access_token');",
+                  "  pm.expect(datos.expires_in).to.eql(3600);",
+                  "});",
+                  "",
+                  "if (datos.access_token) {",
+                  "  pm.environment.set('access_token', datos.access_token);",
+                  "  pm.environment.set('token_vence', String(Date.now() + datos.expires_in * 1000));",
+                  "}"
+                ]
+              }
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "name": "1. Leads",
+      "description": "CRUD y búsquedas del módulo Leads.",
+      "item": [
+        {
+          "name": "Crear lead",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "url": {
+              "raw": "{{api_domain}}/crm/v8/Leads",
+              "host": [
+                "{{api_domain}}"
+              ],
+              "path": [
+                "crm",
+                "v8",
+                "Leads"
+              ]
+            },
+            "description": "Crea un lead de prueba. Con \"trigger\": [\"workflow\"] se ejecutan las reglas de flujo de trabajo, por ejemplo la que crea una tarea para los leads de origen Web.",
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"data\": [\n    {\n      \"First_Name\": \"Prueba\",\n      \"Last_Name\": \"Postman\",\n      \"Company\": \"Empresa de Prueba Postman\",\n      \"Email\": \"{{lead_email}}\",\n      \"Phone\": \"3000000099\",\n      \"City\": \"Medellín\",\n      \"Origen_Cielum\": \"Web\"\n    }\n  ],\n  \"trigger\": [\n    \"workflow\"\n  ]\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            }
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "const datos = pm.response.json();",
+                  "",
+                  "pm.test('Zoho creó el lead (201)', () => {",
+                  "  pm.expect(pm.response.code).to.be.oneOf([200, 201]);",
+                  "  pm.expect(datos.data[0].code, datos.data[0].message).to.eql('SUCCESS');",
+                  "  pm.expect(datos.data[0].details).to.have.property('id');",
+                  "});",
+                  "",
+                  "// Se guarda el id para las siguientes peticiones",
+                  "pm.collectionVariables.set('lead_id', datos.data[0].details.id);"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "Consultar el lead",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{api_domain}}/crm/v8/Leads/{{lead_id}}",
+              "host": [
+                "{{api_domain}}"
+              ],
+              "path": [
+                "crm",
+                "v8",
+                "Leads",
+                "{{lead_id}}"
+              ]
+            },
+            "description": "Trae el lead creado por su id."
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "const datos = pm.response.json();",
+                  "const lead = datos.data[0];",
+                  "",
+                  "pm.test('Zoho devolvió el lead (200)', () => {",
+                  "  pm.response.to.have.status(200);",
+                  "  pm.expect(lead.id).to.eql(pm.collectionVariables.get('lead_id'));",
+                  "});",
+                  "",
+                  "pm.test('El lead tiene los datos con los que se creó', () => {",
+                  "  pm.expect(lead.Last_Name).to.eql('Postman');",
+                  "  pm.expect(lead.Email).to.eql(pm.collectionVariables.get('lead_email'));",
+                  "});"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "Listar leads",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{api_domain}}/crm/v8/Leads?fields=First_Name,Last_Name,Company,Email,Origen_Cielum&per_page=10",
+              "host": [
+                "{{api_domain}}"
+              ],
+              "path": [
+                "crm",
+                "v8",
+                "Leads"
+              ],
+              "query": [
+                {
+                  "key": "fields",
+                  "value": "First_Name,Last_Name,Company,Email,Origen_Cielum"
+                },
+                {
+                  "key": "per_page",
+                  "value": "10"
+                }
+              ]
+            },
+            "description": "Trae los primeros 10 leads. En la v8 el parámetro fields es obligatorio al listar."
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('Zoho devolvió la lista de leads (200)', () => {",
+                  "  // Si el módulo no tiene registros, Zoho responde 204 sin cuerpo",
+                  "  pm.expect(pm.response.code).to.be.oneOf([200, 204]);",
+                  "});",
+                  "",
+                  "if (pm.response.code === 200) {",
+                  "  const datos = pm.response.json();",
+                  "  pm.test('Cada lead trae solo los campos pedidos en fields', () => {",
+                  "    pm.expect(datos.data.length).to.be.at.most(10);",
+                  "    pm.expect(datos.data[0]).to.have.property('Last_Name');",
+                  "    pm.expect(datos.info).to.have.property('more_records');",
+                  "  });",
+                  "}"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "Actualizar el lead",
+          "request": {
+            "method": "PUT",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "url": {
+              "raw": "{{api_domain}}/crm/v8/Leads/{{lead_id}}",
+              "host": [
+                "{{api_domain}}"
+              ],
+              "path": [
+                "crm",
+                "v8",
+                "Leads",
+                "{{lead_id}}"
+              ]
+            },
+            "description": "Cambia la empresa y el teléfono del lead.",
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"data\": [\n    {\n      \"Company\": \"Empresa de Prueba Postman (actualizada)\",\n      \"Phone\": \"3000000098\"\n    }\n  ]\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            }
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "const datos = pm.response.json();",
+                  "",
+                  "pm.test('Zoho actualizó el lead (200)', () => {",
+                  "  pm.response.to.have.status(200);",
+                  "  pm.expect(datos.data[0].code, datos.data[0].message).to.eql('SUCCESS');",
+                  "});"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "Buscar el lead por correo",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{api_domain}}/crm/v8/Leads/search?email={{lead_email}}",
+              "host": [
+                "{{api_domain}}"
+              ],
+              "path": [
+                "crm",
+                "v8",
+                "Leads",
+                "search"
+              ],
+              "query": [
+                {
+                  "key": "email",
+                  "value": "{{lead_email}}"
+                }
+              ]
+            },
+            "description": "Busca leads por correo con la Search API. También se puede buscar con criteria, phone o word."
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('La búsqueda respondió (200 o 204)', () => {",
+                  "  // 204 quiere decir que no encontró nada. Justo después de crear un registro,",
+                  "  // la búsqueda puede tardar unos segundos en encontrarlo.",
+                  "  pm.expect(pm.response.code).to.be.oneOf([200, 204]);",
+                  "});",
+                  "",
+                  "if (pm.response.code === 200) {",
+                  "  const ids = pm.response.json().data.map((lead) => lead.id);",
+                  "  pm.test('La búsqueda encontró el lead creado', () => {",
+                  "    pm.expect(ids).to.include(pm.collectionVariables.get('lead_id'));",
+                  "  });",
+                  "}"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "Buscar con COQL",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "url": {
+              "raw": "{{api_domain}}/crm/v8/coql",
+              "host": [
+                "{{api_domain}}"
+              ],
+              "path": [
+                "crm",
+                "v8",
+                "coql"
+              ]
+            },
+            "description": "Consulta los leads de origen Web con COQL. Necesita el scope ZohoCRM.coql.READ.",
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"select_query\": \"select First_Name, Last_Name, Company, Email, Origen_Cielum from Leads where Origen_Cielum = 'Web' limit 10\"\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            }
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('La consulta COQL respondió (200 o 204)', () => {",
+                  "  pm.expect(pm.response.code).to.be.oneOf([200, 204]);",
+                  "});",
+                  "",
+                  "if (pm.response.code === 200) {",
+                  "  const datos = pm.response.json();",
+                  "  pm.test('COQL trae los registros y la información de paginación', () => {",
+                  "    pm.expect(datos.data).to.be.an('array');",
+                  "    pm.expect(datos.info).to.have.property('count');",
+                  "  });",
+                  "}"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "Borrar el lead",
+          "request": {
+            "method": "DELETE",
+            "header": [],
+            "url": {
+              "raw": "{{api_domain}}/crm/v8/Leads/{{lead_id}}",
+              "host": [
+                "{{api_domain}}"
+              ],
+              "path": [
+                "crm",
+                "v8",
+                "Leads",
+                "{{lead_id}}"
+              ]
+            },
+            "description": "Borra el lead de prueba, para dejar la cuenta como estaba."
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "const datos = pm.response.json();",
+                  "",
+                  "pm.test('Zoho borró el lead (200)', () => {",
+                  "  pm.response.to.have.status(200);",
+                  "  pm.expect(datos.data[0].code, datos.data[0].message).to.eql('SUCCESS');",
+                  "});"
+                ]
+              }
+            }
+          ]
+        }
+      ]
+    }
+  ]
+}
