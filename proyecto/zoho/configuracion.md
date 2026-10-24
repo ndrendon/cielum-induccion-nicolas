@@ -24,7 +24,7 @@ Si tu cuenta quedó en otro data center, cambia esta tabla y el `accounts_url` d
 | Opciones | Web, Referido, Evento |
 | Diseño | Estándar, en la sección de información del lead |
 
-![Campo Origen Cielum en el diseño de Leads](capturas/01-campo-origen-cielum.png)
+![El campo Origen Cielum en los nombres de API de Leads](capturas/01-campo-origen-cielum.png)
 
 ## 2. Vista "Leads de origen Web"
 
@@ -46,9 +46,7 @@ Si tu cuenta quedó en otro data center, cambia esta tabla y el `accounts_url` d
 | Condición | Origen Cielum es Web |
 | Acción instantánea | Tarea: "Llamar al lead que llegó por la Web", vence 1 día después de la regla, prioridad alta, asignada al propietario del lead |
 
-![Regla de flujo de trabajo Tarea para leads de la Web](capturas/03-workflow-tarea-web.png)
-
-![La tarea creada en un lead de origen Web](capturas/04-tarea-creada.png)
+![La tarea creada en un lead de origen Web](capturas/03-tarea-creada.png)
 
 ## 4. Campo "Ultimo trato" en Contacts
 
@@ -60,8 +58,6 @@ Si tu cuenta quedó en otro data center, cambia esta tabla y el `accounts_url` d
 | Tipo | Línea única (*Single Line*) |
 | Lo llena | La función de Deluge `actualizar_contacto_del_trato` |
 
-![Campo Ultimo trato en el diseño de Contacts](capturas/05-campo-ultimo-trato.png)
-
 ## 5. Regla "Actualizar contacto al crear trato" y su función de Deluge
 
 | Propiedad | Valor |
@@ -72,12 +68,6 @@ Si tu cuenta quedó en otro data center, cambia esta tabla y el `accounts_url` d
 | Acción instantánea | Función `actualizar_contacto_del_trato`, con el argumento `dealId` = Deal Id |
 | Código | [`deluge/actualizar_contacto_del_trato.dg`](deluge/actualizar_contacto_del_trato.dg) |
 
-![Regla Actualizar contacto al crear trato](capturas/06-workflow-funcion-deluge.png)
-
-![La función de Deluge en el editor](capturas/07-funcion-deluge.png)
-
-![Un contacto con el campo Ultimo trato lleno por la función](capturas/08-contacto-actualizado.png)
-
 ## 6. Self Client para la API
 
 | Propiedad | Valor |
@@ -87,27 +77,18 @@ Si tu cuenta quedó en otro data center, cambia esta tabla y el `accounts_url` d
 | Scopes | `ZohoCRM.modules.ALL,ZohoCRM.coql.READ` |
 | Duración del grant token | 10 minutos |
 
-En la captura no debe verse el **Client Secret**.
-
-![Self Client en la consola de la API](capturas/09-self-client.png)
-
 ## 7. La colección de Postman
 
-El resultado de correr la colección **zoho-crm** (`postman/`) con el entorno **zoho-crm**.
+La colección **zoho-crm** (`postman/`) con el entorno **zoho-crm**. Qué tiene y cómo se corre está en [`README.md`](README.md#la-colección-zoho-crm).
 
-![Resultado de la colección zoho-crm en Postman](capturas/10-postman-zoho-crm.png)
+## Las capturas
 
-## Capturas que faltan por tomar
+Están en `capturas/`:
 
-Guárdalas en `capturas/` con estos nombres, para que salgan en este documento:
+| Archivo | Qué muestra |
+|---|---|
+| `01-campo-origen-cielum.png` | El campo `Origen_Cielum` en los nombres de API de Leads, como lista de selección y campo personalizado |
+| `02-vista-leads-web.png` | La vista **Leads de origen Web** con los 4 leads |
+| `03-tarea-creada.png` | Un lead de origen Web con la tarea *Llamar al lead que llegó por la Web* en **Actividades abiertas** |
 
-- [ ] `01-campo-origen-cielum.png`: el diseño de Leads con el campo y sus tres opciones.
-- [ ] `02-vista-leads-web.png`: la vista con los 4 leads.
-- [ ] `03-workflow-tarea-web.png`: la regla con su condición y la acción de tarea.
-- [ ] `04-tarea-creada.png`: un lead de origen Web con la tarea en Actividades abiertas.
-- [ ] `05-campo-ultimo-trato.png`: el diseño de Contacts con el campo.
-- [ ] `06-workflow-funcion-deluge.png`: la regla de Deals con la función.
-- [ ] `07-funcion-deluge.png`: el código en el editor de funciones.
-- [ ] `08-contacto-actualizado.png`: un contacto con el campo Ultimo trato lleno.
-- [ ] `09-self-client.png`: el Self Client, sin mostrar el Client Secret.
-- [ ] `10-postman-zoho-crm.png`: el resultado de la colección en Postman.
+Si se agregan más, deben seguir la misma numeración y no mostrar secretos: ni el Client Secret, ni el grant token, ni el access token, ni el refresh token.

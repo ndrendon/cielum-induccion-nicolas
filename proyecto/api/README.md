@@ -5,10 +5,10 @@ API REST de la tienda del proyecto integrador: clientes, productos y pedidos, co
 ## Qué se necesita
 
 - Node.js 22 o más nuevo. Para revisar la versión: `node -v`.
-- Docker Desktop con el contenedor `pg-induccion` (PostgreSQL) prendido. Si está apagado:
+- Docker Desktop con la base del proyecto prendida. Es el servicio `postgres` de `proyecto/docker-compose.yml`, en `localhost:5433`, y la usan los dos modos del proyecto. Parado en `proyecto`:
 
   ```powershell
-  docker start pg-induccion
+  docker compose up -d postgres
   ```
 
 ## Cómo correrla
@@ -32,12 +32,14 @@ cd proyecto/api
    ```
 
 3. Abrir el `.env` y llenar los dos valores que están vacíos:
-   - `PGPASSWORD`: la contraseña del contenedor `pg-induccion`, la misma que se usa en DBeaver.
+   - `PGPASSWORD`: la misma de `POSTGRES_PASSWORD` en `proyecto/.env`.
    - `JWT_SECRET`: un texto secreto de mínimo 16 caracteres. Se puede generar uno con:
 
      ```powershell
      node -e "console.log(require('node:crypto').randomBytes(32).toString('hex'))"
      ```
+
+   Para que la API le avise a n8n de cada pedido nuevo (parte 7), llena también `N8N_WEBHOOK_URL` con `http://localhost:5678/webhook/pedido-creado` y `N8N_WEBHOOK_SECRET` con el mismo de `proyecto/.env`. Si se dejan vacíos, la API funciona igual y no avisa.
 
    El `.env` no se sube a GitHub porque está en el `.gitignore`.
 
@@ -63,7 +65,7 @@ Si falta una variable en el `.env`, la API no prende y dice cuál falta.
 
 ## Correr la API con Docker
 
-> Para prender el **proyecto completo** (la API, su propia base PostgreSQL, SQL Server y Adminer) se usa `proyecto/docker-compose.yml`; los pasos están en [`../README.md`](../README.md). El `compose.yaml` de esta carpeta prende **solo la API**, conectada a `pg-induccion`. Los dos usan el puerto 3001, así que se prende uno o el otro.
+> Para el **proyecto completo** se usa `proyecto/docker-compose.yml`; los pasos están en [`../README.md`](../README.md). El `compose.yaml` de esta carpeta es el del día 08: prende **solo la API**, conectada a `pg-induccion`, la base de los ejercicios. Los dos usan el puerto 3001, así que se prende uno o el otro.
 
 La API también se puede prender dentro de un contenedor de Docker. El contenedor queda en el puerto **3001**, así que puede estar prendido al mismo tiempo que la API de `npm run dev` (puerto 3000). Las dos usan la misma base de datos: la del contenedor `pg-induccion`.
 
@@ -343,15 +345,15 @@ Para el aviso a n8n, las pruebas levantan un n8n falso en `http://127.0.0.1:3999
 | Variable | Para qué sirve | Valor en `.env.example` |
 |---|---|---|
 | `PORT` | Puerto de la API | `3000` |
-| `PGHOST`, `PGPORT` | Dónde está PostgreSQL | `localhost`, `5432` |
+| `PGHOST`, `PGPORT` | Dónde está PostgreSQL: la base de `docker-compose.yml` | `localhost`, `5433` |
 | `PGDATABASE` | Nombre de la base | `proyecto` |
 | `PGUSER`, `PGPASSWORD` | Usuario y contraseña de PostgreSQL | `postgres` y vacío |
 | `JWT_SECRET` | Secreto para firmar los tokens (mínimo 16 caracteres) | vacío |
 | `JWT_EXPIRES_IN` | Cuánto dura un token | `1h` |
 | `CORS_ORIGIN` | Dirección del frontend que puede usar la API | `http://localhost:5173` |
 | `PGOPTIONS` | Opciones de la conexión a PostgreSQL. Con `-c timezone=America/Bogota`, los pedidos nuevos quedan con la fecha de Colombia | `-c timezone=America/Bogota` |
-| `N8N_WEBHOOK_URL` | Webhook de n8n que recibe cada pedido nuevo (parte 7). Si está vacía, no se avisa | vacío |
-| `N8N_WEBHOOK_SECRET` | Secreto que va en el encabezado `X-Webhook-Secret` (mínimo 16 caracteres si hay `N8N_WEBHOOK_URL`) | vacío |
+| `N8N_WEBHOOK_URL` | Webhook de n8n que recibe cada pedido nuevo (parte 7). En el modo local es `http://localhost:5678/webhook/pedido-creado`. Si está vacía, no se avisa | vacío |
+| `N8N_WEBHOOK_SECRET` | Secreto que va en el encabezado `X-Webhook-Secret` (mínimo 16 caracteres si hay `N8N_WEBHOOK_URL`). Es el mismo de la credencial **Secreto de la API** en n8n | vacío |
 
 ## Estructura por capas
 

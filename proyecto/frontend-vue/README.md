@@ -158,7 +158,7 @@ Los nombres de los componentes tienen dos palabras (por ejemplo `CajaMensaje` y 
 | Lo que sale | Qué pasa | Qué hacer |
 |---|---|---|
 | `La API no respondió. Revisa que esté prendida.` | La API está apagada o está en otro puerto. En la terminal de Vite sale `http proxy error` | Prender la API con `npm run dev` en `proyecto/api`. Si es la de Docker, usar `$env:API_URL` |
-| `Error interno del servidor` al iniciar sesión | La API está prendida, pero no se puede conectar a la base. En la terminal de la API sale `ECONNREFUSED` | Prender la base: `docker start pg-induccion` |
+| `Error interno del servidor` al iniciar sesión | La API está prendida, pero no se puede conectar a la base. En la terminal de la API sale `ECONNREFUSED` | Prender la base: `docker compose up -d postgres` en `proyecto` |
 | `npm WARN EBADENGINE` al hacer `npm install`, o Vite no prende | La versión de Node es muy vieja | Instalar Node 24 (24.12 o más nuevo) |
 | Los archivos `.vue` se ven sin colores en VS Code | Falta la extensión | Instalar **Vue (Official)** |
 | Al recargar la página, toca iniciar sesión otra vez | Es normal: el token está solo en memoria | Volver a entrar |

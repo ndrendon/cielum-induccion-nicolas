@@ -100,7 +100,7 @@
 
 - Qué es la RPA, la diferencia entre los bots atendidos y los no atendidos, y por qué conviene usar una API cuando existe: un bot que trabaja sobre la pantalla falla cuando la aplicación cambia.
 - Cómo se arma una automatización en n8n: el workflow, los nodos, los triggers, las ejecuciones y las credenciales, el nodo Webhook con su URL de prueba y su URL de producción, el manejo de errores con el Error Workflow, y cómo se instala con Docker usando un volumen y variables de entorno.
-- A pasarle la dirección de la API al front de React con la variable `VITE_API_URL` del `.env`, que se lee en `cliente.js` con `import.meta.env.VITE_API_URL`. Vite solo deja llegar al código del navegador las variables que empiezan por `VITE_`.
+- Dónde está la dirección de la API en el front de React: en la variable `API_URL` del `.env` de `frontend-react`. La lee `vite.config.js` para pasarle a la API las peticiones que empiezan por `/api`, y el navegador siempre llama a `/api`. Como esa variable la usa Vite y no el código del navegador, no necesita el prefijo `VITE_`: Vite solo deja llegar al navegador las variables que empiezan por `VITE_`, y ahí se leen con `import.meta.env`.
 
 ## Lo que no entendí o me costó
 
@@ -115,7 +115,7 @@
 | `invalid_client` al cambiar el grant token por tokens en Postman | En el entorno `zoho` estaban vacíos `client_id`, `client_secret` y `grant_token` | Llené el **Local value** de las tres variables con los datos del Self Client y un código nuevo, y envié la petición enseguida |
 | Borré sin querer el `grant_token` del entorno de Postman | Lo borré al editar el entorno | Generé otro código en la pestaña **Generate Code** de la consola de Zoho y lo pegué otra vez en `grant_token` |
 | `401 INVALID_TOKEN` y después `401 AUTHENTICATION_FAILURE` al crear el lead | Todavía no tenía access token, y la autorización de la colección usaba la variable `auth_secret_0si7` del Vault, que en el Run llegaba vacía | Hice el cambio del grant token, dejé la autorización de la colección en `Zoho-oauthtoken {{access_token}}` y borré la variable `auth_secret_0si7` |
-| El `.env` del front de React tenía las variables de la API, como la contraseña de la base de datos y el secreto del JWT | Copié el `.env` de la API en la carpeta del front | Dejé el `.env` del front solo con `VITE_API_URL=http://localhost:3000` |
+| El `.env` del front de React tenía las variables de la API, como la contraseña de la base de datos y el secreto del JWT | Copié el `.env` de la API en la carpeta del front | Dejé el `.env` del front solo con `API_URL=http://localhost:3000`, como dice su `.env.example` |
 
 ## Uso de IA hoy
 

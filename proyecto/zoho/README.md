@@ -15,7 +15,7 @@ La parte 6 del proyecto configura Zoho CRM y lo usa por API. Se usan los mismos 
 
 1. **Los ejercicios del día 13.** La cuenta de prueba, los leads, el campo **Origen Cielum**, la vista y la regla de la tarea, como dice `../../semana-3/zoho/README.md`.
 2. **La función de Deluge.** El campo **Ultimo trato** en Contacts y la regla `Actualizar contacto al crear trato`, como dice `deluge/README.md`.
-3. **Las capturas.** Guárdalas en `capturas/` con los nombres que pide `configuracion.md`.
+3. **Las capturas.** Van en `capturas/`, numeradas, y salen en `configuracion.md`.
 4. **La colección de Postman**, como se explica abajo.
 
 ## La colección zoho-crm

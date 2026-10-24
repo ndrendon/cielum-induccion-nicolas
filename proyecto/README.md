@@ -1,191 +1,212 @@
 # Proyecto integrador
 
-Una tienda con clientes, productos, pedidos con su detalle y login con JWT. Tiene una API REST que guarda los datos en PostgreSQL, una colección de Postman de 135 pruebas y una página web para manejar los pedidos, hecha dos veces: en React y en Vue. Todo se prende en Docker con un solo comando. Además, la parte 6 configura Zoho CRM y lo usa por API, y la parte 7 conecta todo: cada pedido nuevo pasa por n8n a Zoho CRM, y un bot de Python arma el reporte diario en Excel leyendo la página.
+Una tienda con clientes, productos, pedidos y login con JWT. Tiene una API REST con su base en PostgreSQL, una colección de Postman de 135 pruebas y una página web para manejar los pedidos, hecha en React y también en Vue. Cada pedido nuevo pasa por n8n a Zoho CRM, queda registrado en la base y llega un correo de aviso. Un bot de Python arma el reporte diario en Excel leyendo la página.
 
-## Inicio rápido
+El diagrama y cómo se conectan las partes están en [`../docs/arquitectura.md`](../docs/arquitectura.md).
 
-Con Docker Desktop prendido, en la terminal de VS Code, parado en esta carpeta (`proyecto`):
+## Una sola base, un solo n8n y un solo Mailpit
 
-1. Crear el `.env` y llenar los cinco valores vacíos (`POSTGRES_PASSWORD`, `JWT_SECRET`, `MSSQL_SA_PASSWORD`, `N8N_ENCRYPTION_KEY` y `N8N_WEBHOOK_SECRET`; las reglas de cada uno están más abajo, en "Cómo prenderlo"):
+PostgreSQL, n8n y Mailpit corren **siempre en Docker**, con `docker-compose.yml`, y son los mismos para los dos modos. La API y la página se pueden correr de dos formas:
 
-   ```powershell
-   Copy-Item .env.example .env
-   code .env
-   ```
+| | Modo local (principal) | Modo Docker (segunda opción) |
+|---|---|---|
+| La base, n8n y Mailpit | En Docker: `docker compose up -d postgres mailpit n8n` | En Docker |
+| La API y la página | En el computador, con `npm run dev` | En Docker: `docker compose up -d --build` |
+| Página en React | <http://localhost:5173> | <http://localhost:8080> |
+| API | <http://localhost:3000> | <http://localhost:3001> |
+| n8n y Mailpit | <http://localhost:5678> y <http://localhost:8025> | Los mismos |
 
-2. Prender todo:
-
-   ```powershell
-   docker compose up -d
-   ```
-
-   La página en React queda en <http://localhost:8080>, la de Vue en <http://localhost:8082>, la API en <http://localhost:3001>, n8n en <http://localhost:5678> y Mailpit en <http://localhost:8025>.
-
-3. Correr la colección de Postman contra la API de Docker:
-
-   ```powershell
-   cd postman
-   npm install
-   npm run test:api:docker
-   ```
-
-## Comprobar que todo funciona
-
-- [ ] `docker compose ps` muestra los ocho contenedores `Up`, y `postgres`, `api` y `sqlserver` dicen `(healthy)`.
-- [ ] <http://localhost:3001/salud> responde `{"estado":"ok",...}`.
-- [ ] `npm run test:api:docker` termina con 135 pruebas y 0 fallidas, y deja `postman/reporte-docker.html`.
-- [ ] Adminer, en <http://localhost:8081>, muestra las seis tablas de la base `proyecto`, con `log_integraciones` (parte 7).
-- [ ] <http://localhost:8080> muestra el login y, al entrar con `vendedor@cielum.test` / `Vendedor2026*`, salen los pedidos.
-- [ ] <http://localhost:8082> hace lo mismo con la página en Vue.
-- [ ] <http://localhost:5678> muestra n8n y <http://localhost:8025> muestra Mailpit.
-- [ ] Al crear un pedido, el workflow **Pedido a Zoho CRM** lo pasa a Zoho y llega un correo a Mailpit (ver [`n8n/README.md`](n8n/README.md)).
+Como los dos modos usan la misma base, el mismo n8n y el mismo Mailpit, **todo queda guardado en un solo lugar**: un pedido creado en el modo local se ve después en el modo Docker, y al revés. n8n se prepara una sola vez, con una sola cuenta y unas solas credenciales.
 
 ## Qué hay en esta carpeta
 
-| Carpeta o archivo | Qué es |
-|---|---|
-| `api/` | La API REST: clientes, productos, pedidos y login con JWT (parte 1) |
-| `postman/` | La colección completa de Postman, los entornos, Newman y curl (parte 2) |
-| `docker-compose.yml` | Todo el proyecto corriendo en Docker (partes 3, 4, 5 y 7) |
-| `frontend-react/` | La página web en React: login, pedidos con filtros y paginación, crear pedidos y cambiarles el estado (parte 4) |
-| `frontend-vue/` | La misma página web hecha en Vue, con las mismas funciones (parte 5) |
-| `zoho/` | Zoho CRM: la configuración con sus capturas, la colección de Postman zoho-crm y una función de Deluge (parte 6). Ver [`zoho/README.md`](zoho/README.md) |
-| `n8n/` | El workflow de n8n que pasa cada pedido nuevo a Zoho CRM, lo registra en `log_integraciones` y avisa por correo (parte 7). Ver [`n8n/README.md`](n8n/README.md) |
-| `rpa/` | El bot de Python que entra a la página de React y arma el reporte diario de pedidos en Excel (parte 7). Ver [`rpa/README.md`](rpa/README.md) |
-| `.env.example` | Plantilla de las variables que usa `docker-compose.yml` |
+| Carpeta o archivo | Qué es | Parte |
+|---|---|---|
+| `api/` | La API REST: clientes, productos, pedidos y login con JWT. Ver [`api/README.md`](api/README.md) | 1 |
+| `postman/` | La colección completa de Postman, sus entornos `local` y `docker`, Newman y curl. Ver [`postman/README.md`](postman/README.md) | 2 |
+| `docker-compose.yml` | La base, n8n y Mailpit, y también la API y las páginas para el modo Docker | 3, 4, 5 y 7 |
+| `frontend-react/` | La página en React: login, pedidos con filtro y páginas, crear pedidos y cambiarles el estado. Ver [`frontend-react/README.md`](frontend-react/README.md) | 4 |
+| `frontend-vue/` | La misma página hecha en Vue. Ver [`frontend-vue/README.md`](frontend-vue/README.md) | 5 |
+| `zoho/` | Zoho CRM: la configuración, la colección de Postman zoho-crm y la función de Deluge. Ver [`zoho/README.md`](zoho/README.md) | 6 |
+| `n8n/` | El workflow que pasa cada pedido nuevo a Zoho CRM, lo registra en `log_integraciones` y avisa por correo. Ver [`n8n/README.md`](n8n/README.md) | 7 |
+| `rpa/` | El bot de Python que arma el reporte diario de pedidos en Excel. Ver [`rpa/README.md`](rpa/README.md) | 7 |
+| `.env.example` | Plantilla de las variables de `docker-compose.yml` | 3 |
 
-La comparación entre la página en React y la página en Vue está en [`../docs/react-vs-vue.md`](../docs/react-vs-vue.md).
+La comparación entre la página en React y la de Vue está en [`../docs/react-vs-vue.md`](../docs/react-vs-vue.md).
 
-## Todo el proyecto en Docker (partes 3, 4, 5 y 7)
+## La primera vez
 
-`docker-compose.yml` prende ocho contenedores que trabajan juntos:
+Los comandos van en la terminal de VS Code (PowerShell), con Docker Desktop prendido, empezando desde la raíz del repo.
 
-| Servicio | Contenedor | En el computador | Qué hace |
-|---|---|---|---|
-| `frontend` | `proyecto-frontend` | <http://localhost:8080> | La página en React, construida con `frontend-react/Dockerfile`. nginx muestra la página y le pasa al servicio `api` las peticiones que llegan a `/api` |
-| `frontend-vue` | `proyecto-frontend-vue` | <http://localhost:8082> | La misma página hecha en Vue, construida con `frontend-vue/Dockerfile`. Funciona igual: nginx muestra la página y pasa las peticiones de `/api` al servicio `api` |
-| `api` | `proyecto-api` | <http://localhost:3001> | La API del proyecto, construida con `api/Dockerfile`. Se conecta a `postgres` por el nombre del servicio |
-| `postgres` | `proyecto-postgres` | `localhost:5433` | PostgreSQL 16 con la base `proyecto`. Guarda los datos en el volumen `datos-postgres` y, la primera vez, ejecuta los scripts de `api/db` para crear las tablas y cargar los datos de ejemplo |
-| `sqlserver` | `proyecto-sqlserver` | `localhost:1434` | SQL Server 2022, con sus datos en el volumen `datos-sqlserver` |
-| `adminer` | `proyecto-adminer` | <http://localhost:8081> | Una página web para ver y consultar la base de PostgreSQL |
-| `n8n` | `proyecto-n8n` | <http://localhost:5678> | n8n, con los workflows de la parte 7. Guarda los workflows, las credenciales cifradas y las ejecuciones en el volumen `datos-n8n`, y comparte la carpeta `n8n/archivos` |
-| `mailpit` | `proyecto-mailpit` | <http://localhost:8025> | Servidor de correo de pruebas: recibe los correos que manda n8n y los muestra en una página, sin enviarlos a internet |
-
-Los puertos son 5433 y 1434 porque el 5432 y el 1433 ya los usan `pg-induccion` y el SQL Server del día 05. La API queda en el 3001, que es el que usa el entorno `docker` de Postman. La página en React queda en el 8080 y la de Vue en el 8082, porque el 8081 ya lo usa Adminer.
-
-El orden en que prenden: primero `postgres`; cuando está `healthy`, la `api` y `n8n` (que también espera a `mailpit`); y cuando la `api` está `healthy`, el `frontend` y el `frontend-vue`.
-
-Cuando se crea un pedido, la API le avisa a n8n en `http://n8n:5678/webhook/pedido-creado`: dentro de la red de Compose, cada servicio encuentra a los otros por su nombre.
-
-### Cómo prenderlo
-
-Los comandos van en la terminal de VS Code, con Docker Desktop prendido.
-
-1. Si está prendida la API de Docker del día 08, apagarla, porque también usa el puerto 3001:
+1. **El `.env` de Docker.** Parado en `proyecto`:
 
    ```powershell
-   cd proyecto/api
-   docker compose down
-   cd ..
-   ```
-
-2. Parado en la carpeta `proyecto`, crear el `.env`:
-
-   ```powershell
+   cd proyecto
    Copy-Item .env.example .env
    code .env
    ```
 
-   Llenar los cinco valores vacíos:
-   - `POSTGRES_PASSWORD`: la contraseña de la base nueva. Es una base aparte de `pg-induccion`, así que se puede escoger cualquiera.
-   - `JWT_SECRET`: un texto de mínimo 16 caracteres. Se puede generar uno con `node -e "console.log(require('node:crypto').randomBytes(32).toString('hex'))"`.
-   - `MSSQL_SA_PASSWORD`: mínimo 8 caracteres, mezclando mayúsculas, minúsculas, números y símbolos. Si no cumple, SQL Server no arranca.
-   - `N8N_ENCRYPTION_KEY`: la llave con la que n8n cifra las credenciales. Se genera con el mismo comando del `JWT_SECRET` y no se cambia después.
-   - `N8N_WEBHOOK_SECRET`: el secreto que la API le manda a n8n en cada aviso. Otro texto generado con el mismo comando.
+   Llena los cinco valores vacíos. Esto se hace **una sola vez**: si después vuelves a copiar `.env.example` encima, se borran.
+   - `POSTGRES_PASSWORD`: la contraseña de la base.
+   - `JWT_SECRET`: un texto aleatorio de mínimo 16 caracteres.
+   - `MSSQL_SA_PASSWORD`: mínimo 8 caracteres, con mayúsculas, minúsculas, números y símbolos. Si no cumple, SQL Server no arranca.
+   - `N8N_ENCRYPTION_KEY`: la llave con la que n8n cifra las credenciales. No se cambia después: si cambia, n8n ya no puede leer las credenciales.
+   - `N8N_WEBHOOK_SECRET`: el secreto que la API le manda a n8n en cada aviso.
 
-   El `.env` no se sube a GitHub, porque está en el `.gitignore`.
-
-3. Prender todo:
+   Cada texto aleatorio sale de este comando:
 
    ```powershell
-   docker compose up -d
+   node -e "console.log(require('node:crypto').randomBytes(32).toString('hex'))"
    ```
 
-   La primera vez se demora más, porque construye las imágenes de la API y de los dos frontends, y descarga las de PostgreSQL, SQL Server, Adminer, Node, nginx, n8n y Mailpit. Si los otros contenedores ya estaban prendidos, este mismo comando prende solo los que faltan, por ejemplo `n8n` y `mailpit`. Si cambió el código de la API, como en la parte 7, se usa `docker compose up -d --build`.
-
-4. Revisar que todo esté funcionando:
+2. **Prender la base, n8n y Mailpit:**
 
    ```powershell
-   docker compose ps
+   docker compose up -d postgres mailpit n8n
    ```
 
-   Los ocho contenedores deben salir `Up`, y `postgres`, `api` y `sqlserver` deben decir `(healthy)`. SQL Server puede tardar cerca de un minuto en quedar `healthy`.
+   La primera vez, PostgreSQL ejecuta los scripts de `api/db`: crea las tablas, carga los datos de ejemplo y crea `log_integraciones`.
 
-   Probar la API en <http://localhost:3001/salud>, la página en React en <http://localhost:8080>, la de Vue en <http://localhost:8082>, n8n en <http://localhost:5678> y Mailpit en <http://localhost:8025>.
+3. **Preparar n8n:** la cuenta, las credenciales y los workflows. Los pasos están en [`n8n/README.md`](n8n/README.md).
 
-5. Si el volumen de PostgreSQL ya existía antes de la parte 7, crear la tabla `log_integraciones` una sola vez:
+4. **La API.** En `proyecto/api`:
 
    ```powershell
-   docker compose exec postgres psql -U postgres -d proyecto -f /docker-entrypoint-initdb.d/03_integraciones.sql
+   cd api
+   npm install
+   Copy-Item .env.example .env
+   code .env
    ```
 
-6. Preparar n8n: la cuenta, las credenciales y los workflows. Los pasos están en [`n8n/README.md`](n8n/README.md).
+   Llena estos valores:
+   - `PGPASSWORD`: la misma de `POSTGRES_PASSWORD` en `proyecto/.env`. El `.env.example` ya trae `PGPORT=5433`, el puerto de la base de Docker.
+   - `JWT_SECRET`: un texto aleatorio de mínimo 16 caracteres.
+   - `N8N_WEBHOOK_URL`: `http://localhost:5678/webhook/pedido-creado`.
+   - `N8N_WEBHOOK_SECRET`: el mismo de `proyecto/.env`, para que n8n acepte los avisos de los dos modos.
 
-### Probar la colección de Postman contra el entorno `docker`
+5. **La página en React.** En `proyecto/frontend-react`, `npm install` y `Copy-Item .env.example .env`. El `.env` ya trae `API_URL=http://localhost:3000`. Para la página en Vue es lo mismo, en `proyecto/frontend-vue`.
 
-- **En Postman:** escoger el entorno **docker** → clic derecho en la colección **Proyecto API · colección completa** → **Run collection** → **Run**. Deben pasar las 135 pruebas.
-- **Con Newman:**
+6. **El bot de RPA:** los pasos están en [`rpa/README.md`](rpa/README.md).
 
-  ```powershell
-  cd postman
-  npm run test:api:docker
-  ```
+7. **Newman**, para correr la colección de Postman desde la terminal: `npm install` en `proyecto/postman`.
 
-  Deja el reporte en `postman/reporte-docker.html`.
+## Opción 1: modo local (principal)
 
-### Probar el frontend
+| Terminal | Parado en | Comando | Queda en |
+|---|---|---|---|
+| 1. La base, n8n y Mailpit | `proyecto` | `docker compose up -d postgres mailpit n8n` | `localhost:5433`, <http://localhost:5678> y <http://localhost:8025> |
+| 2. API | `proyecto/api` | `npm run dev` | <http://localhost:3000> |
+| 3. Página en React | `proyecto/frontend-react` | `npm run dev` | <http://localhost:5173> |
 
-1. Abrir <http://localhost:8080> (React) o <http://localhost:8082> (Vue) y entrar con `vendedor@cielum.test` / `Vendedor2026*`.
-2. En **Pedidos**, cambiar el filtro de estado y pasar de página con **Siguiente**.
-3. En **Nuevo pedido**, escoger un cliente y dos productos, y crear el pedido.
-4. En el detalle del pedido nuevo, cambiarle el estado a `enviado`.
+El comando de la terminal 1 deja los tres contenedores prendidos por detrás, así que esa terminal te queda libre. La página en Vue es opcional: `npm run dev` en `proyecto/frontend-vue`, y queda en <http://localhost:5175>.
 
-Las dos páginas usan la misma API, así que un pedido creado en una también sale en la otra. Con n8n prendido y el workflow publicado, cada pedido nuevo también llega a Zoho CRM. Lo que se haga queda guardado en la base `proyecto` de `proyecto-postgres`, y se puede ver en Adminer. Para correr los frontends sin Docker, con `npm run dev`, los pasos están en [`frontend-react/README.md`](frontend-react/README.md) y [`frontend-vue/README.md`](frontend-vue/README.md).
+La API y la página se apagan con **Ctrl + C**. Los contenedores, con `docker compose stop` en `proyecto`.
 
-### Ver las bases de datos
+### Comprobar que todo funciona
 
-- **Adminer:** en <http://localhost:8081>, Sistema **PostgreSQL**, Servidor `postgres`, Usuario `postgres`, la contraseña de `POSTGRES_PASSWORD` y Base de datos `proyecto`.
-- **DBeaver, PostgreSQL:** Host `localhost`, Puerto `5433`, Base `proyecto`, usuario `postgres` y la contraseña de `POSTGRES_PASSWORD`.
-- **DBeaver, SQL Server:** Host `localhost`, Puerto `1434`, usuario `sa` y la contraseña de `MSSQL_SA_PASSWORD`. Marcar *Trust Server Certificate*.
+- [ ] <http://localhost:3000/salud> responde `{"estado":"ok",...}`.
+- [ ] <http://localhost:5173> muestra el login y, al entrar con `vendedor@cielum.test` / `Vendedor2026*`, salen los pedidos.
+- [ ] En n8n, el workflow **Pedido a Zoho CRM** está publicado.
+- [ ] Al crear un pedido, sale una ejecución nueva en n8n, el cliente aparece en Zoho CRM y llega un correo a Mailpit.
+- [ ] `npm test` en `proyecto/api` termina con 32 pruebas y 0 fallidas.
+- [ ] `npm run test:api` en `proyecto/postman` termina con 135 pruebas y 0 fallidas.
 
-### Comandos
+## Opción 2: modo Docker
 
-| Comando (en la carpeta `proyecto`) | Qué hace |
-|---|---|
-| `docker compose up -d` | Prende los ocho contenedores |
-| `docker compose ps` | Muestra el estado de cada contenedor |
-| `docker compose logs -f api` | Muestra los logs de la API (`Ctrl + C` para dejar de verlos) |
-| `docker compose logs -f frontend` | Muestra los logs de nginx: cada página y cada petición a `/api` que llega |
-| `docker compose logs -f frontend-vue` | Lo mismo, para la página en Vue |
-| `docker compose logs -f n8n` | Muestra los logs de n8n |
-| `docker compose up -d --build` | Vuelve a construir las imágenes de la API y de los frontends, después de cambiar su código |
-| `docker compose down` | Apaga y borra los contenedores. Los datos quedan en los volúmenes |
-| `docker compose down -v` | Apaga y borra los contenedores **y los volúmenes**. Se pierden los datos |
+Si están prendidas la API y la página del modo local, apágalas con **Ctrl + C**. Después, parado en `proyecto`:
 
-Los scripts de `api/db` solo se ejecutan cuando el volumen de PostgreSQL está vacío. Para volver a los datos de ejemplo: `docker compose down -v` y después `docker compose up -d`.
+```powershell
+docker compose up -d --build
+docker compose ps
+```
 
-### Si algo falla
+`--build` construye las imágenes de la API y de las páginas con el código de ahora. Los ocho contenedores deben salir `Up`, y `postgres`, `api` y `sqlserver` deben decir `(healthy)`.
+
+| Servicio | Contenedor | En el computador | Qué hace |
+|---|---|---|---|
+| `postgres` | `proyecto-postgres` | `localhost:5433` | PostgreSQL 16 con la base `proyecto`. **La usan los dos modos** |
+| `n8n` | `proyecto-n8n` | <http://localhost:5678> | n8n, con sus workflows y credenciales en el volumen `datos-n8n`. **Lo usan los dos modos** |
+| `mailpit` | `proyecto-mailpit` | <http://localhost:8025> | El correo de pruebas. **Lo usan los dos modos** |
+| `api` | `proyecto-api` | <http://localhost:3001> | La API. Se conecta a `postgres` y a `n8n` por el nombre del servicio |
+| `frontend` | `proyecto-frontend` | <http://localhost:8080> | La página en React. nginx le pasa a la `api` las peticiones de `/api` |
+| `frontend-vue` | `proyecto-frontend-vue` | <http://localhost:8082> | La página en Vue |
+| `sqlserver` | `proyecto-sqlserver` | `localhost:1434` | SQL Server 2022, el de los días 05 y 06 |
+| `adminer` | `proyecto-adminer` | <http://localhost:8081> | Una página para ver la base de PostgreSQL |
+
+Los puertos 5433 y 1434 son para no chocar con `pg-induccion` y el SQL Server del día 05, que usan los ejercicios de la semana 1 y 2. La API queda en el 3001, que es el del entorno `docker` de Postman.
+
+### Comprobar que todo funciona en Docker
+
+- [ ] <http://localhost:3001/salud> responde `{"estado":"ok",...}`.
+- [ ] <http://localhost:8080> (React) y <http://localhost:8082> (Vue) muestran el login y los pedidos, también los que creaste en el modo local.
+- [ ] Al crear un pedido, sale la ejecución en el mismo n8n y el correo en el mismo Mailpit.
+- [ ] `npm run test:api:docker` en `proyecto/postman` termina con 135 pruebas y 0 fallidas.
+
+## Ver la base de datos
+
+Es la misma en los dos modos:
+
+- **DBeaver:** Host `localhost`, Puerto `5433`, Base `proyecto`, Usuario `postgres` y la contraseña de `POSTGRES_PASSWORD`.
+- **Adminer** (solo con el modo Docker prendido): <http://localhost:8081>, Sistema **PostgreSQL**, Servidor `postgres`, Usuario `postgres` y Base de datos `proyecto`.
+- **Terminal:** `docker compose exec postgres psql -U postgres -d proyecto`. Se sale con `\q`.
+
+## Demo de 5 minutos
+
+El flujo completo: login → crear pedido → aparece en Zoho → correo → reporte RPA. Las direcciones son las del modo local; las de Docker van entre paréntesis.
+
+**Antes de empezar:** todo prendido, el workflow **Pedido a Zoho CRM** publicado, y abiertas en el navegador la página (<http://localhost:5173>), n8n, Zoho CRM en **Contactos** y Mailpit.
+
+1. **Datos en limpio.** En `proyecto/api`, `npm run db:init` deja la base con los datos de ejemplo. Sirve para los dos modos, porque la base es la misma.
+2. **Login.** Entra con `vendedor@cielum.test` / `Vendedor2026*`. Muestra la lista de pedidos, el filtro por estado y el paso de página.
+3. **Crear un pedido.** En **Nuevo pedido**, escoge un cliente y dos productos y crea el pedido. Sale su detalle, con el total.
+4. **n8n.** En el workflow, pestaña **Executions**: sale la ejecución del pedido. Ábrela y muestra el camino que siguió.
+5. **Zoho CRM.** En **Contactos** sale el cliente, y en **Descripción** dice `Último pedido: #... del ... por $ ...`.
+6. **Correo.** En Mailpit llega *Pedido #...: el contacto se creó en Zoho CRM*.
+7. **El log.** En DBeaver: `SELECT * FROM log_integraciones ORDER BY id_log DESC;`.
+8. **Reporte RPA.** En `proyecto/rpa`, con el entorno virtual activo: `python reporte_diario.py`. Abre `salida/reporte_diario.xlsx`: está el pedido de hoy. En Docker, `FRONTEND_URL` del `.env` del bot va con `http://localhost:8080`.
+
+## Pruebas
+
+| Qué | Dónde | Comando | Resultado |
+|---|---|---|---|
+| Pruebas automáticas de la API | `proyecto/api` | `npm test` | 32 pruebas. Usan otra base, `proyecto_test`, así que no tocan los datos |
+| Colección de Postman, modo local | `proyecto/postman` | `npm run test:api` | 135 pruebas y el reporte `reporte.html` |
+| Colección de Postman, modo Docker | `proyecto/postman` | `npm run test:api:docker` | 135 pruebas y el reporte `reporte-docker.html` |
+| Colección de Zoho CRM | Postman | **Run collection** en **zoho-crm** | 19 pruebas. Ver [`zoho/README.md`](zoho/README.md) |
+
+En Postman se escoge el entorno **local** o **docker** y se corre la colección **Proyecto API · colección completa** con **Run collection**. Cada pedido que crea la colección también pasa por n8n. Por eso, en Zoho aparecen los clientes de prueba y en Mailpit un correo por cada pedido.
+
+Newman vuelve a escribir `reporte.html` cada vez que corre. Si no quieres subir ese cambio a Git: `git restore proyecto/postman/reporte.html`.
+
+## Comandos
+
+| Comando | Dónde | Qué hace |
+|---|---|---|
+| `docker compose up -d postgres mailpit n8n` | `proyecto` | Prende la base, n8n y Mailpit (los dos modos los usan) |
+| `docker compose up -d --build` | `proyecto` | Prende todo en Docker: también la API y las páginas |
+| `docker compose ps` | `proyecto` | Muestra el estado de cada contenedor |
+| `docker compose logs -f n8n` | `proyecto` | Muestra los logs de n8n (`Ctrl + C` para dejar de verlos). Sirve igual con `api` o `postgres` |
+| `docker compose stop` | `proyecto` | Apaga los contenedores. Los datos quedan guardados |
+| `docker compose down` | `proyecto` | Apaga y borra los contenedores. Los datos quedan en los volúmenes |
+| `docker compose down -v` | `proyecto` | Borra también **los volúmenes**: se pierden la base y la configuración de n8n. No lo uses si no quieres empezar de cero |
+| `npm run dev` | `proyecto/api` | Prende la API del modo local y la reinicia sola al guardar cambios |
+| `npm run db:init` | `proyecto/api` | Deja la base con las tablas y los datos de ejemplo |
+| `npm run dev` | `proyecto/frontend-react` o `proyecto/frontend-vue` | Prende la página del modo local |
+| `python reporte_diario.py` | `proyecto/rpa` | Arma el reporte del día |
+
+## Si algo falla
 
 | Lo que sale | Qué pasa | Qué hacer |
 |---|---|---|
-| `required variable ... is missing a value` | Falta el `.env` o un valor del `.env` | Crear el `.env` (paso 2) y llenarlo |
-| `port is already allocated` | Otro contenedor o programa usa ese puerto | Apagar la API del día 08 (paso 1). Si es el 8080, puede ser `mi-nginx` del día 09: `docker rm -f mi-nginx`. Con `docker ps` se ve cuál lo usa |
-| `proyecto-sqlserver` se apaga solo | La contraseña de `MSSQL_SA_PASSWORD` no cumple las reglas | Cambiarla en el `.env` y volver a correr `docker compose up -d`. El motivo sale en `docker compose logs sqlserver` |
-| `proyecto-api` se apaga solo | Le falta una variable, como un `JWT_SECRET` de menos de 16 caracteres | Ver el motivo con `docker compose logs api` |
-| `dependency failed to start: container proyecto-api is unhealthy` | Los frontends esperan a que la API esté `healthy`, y la API falló | Ver el motivo con `docker compose logs api` |
-| La página de <http://localhost:8080> o la de <http://localhost:8082> dice `La API no respondió. Revisa que esté prendida.` | El contenedor de la API está apagado o se está reiniciando | Revisar con `docker compose ps`. Si la API está `healthy`, `docker compose restart frontend frontend-vue` |
-| La colección falla en el login | La base no tiene los datos de ejemplo | `docker compose down -v` y `docker compose up -d` |
-| `proyecto-n8n` se apaga solo y en `docker compose logs n8n` dice `Mismatching encryption keys` | Se cambió `N8N_ENCRYPTION_KEY` después de crear el volumen de n8n | Volver a poner la llave de antes. Si se perdió, `docker volume rm proyecto_datos-n8n` borra n8n (los workflows y las credenciales) para empezar de nuevo |
-| Los pedidos no llegan a n8n | El workflow no está publicado, o el secreto no coincide | Ver **Si algo falla** en [`n8n/README.md`](n8n/README.md) |
-
-Cada pedido que se crea, también desde la colección de Postman o con Newman, pasa por n8n y llega a Zoho CRM. Por eso, al correr la colección completa con n8n prendido, en Zoho aparecen contactos de los clientes de prueba y en Mailpit, un correo por cada pedido.
+| `required variable ... is missing a value` | Falta el `proyecto/.env` o uno de sus valores | Llénalo (La primera vez, paso 1) |
+| La API local no prende y dice `Faltan variables de entorno` | Falta un valor en `proyecto/api/.env` | Llénalo. Si hay `N8N_WEBHOOK_URL`, `N8N_WEBHOOK_SECRET` debe tener mínimo 16 caracteres |
+| `Error interno del servidor` al entrar, y en la terminal de la API sale `ECONNREFUSED` | La base está apagada, o la API local apunta a otro puerto | `docker compose up -d postgres` y revisa `PGPORT=5433` en `proyecto/api/.env` |
+| En la terminal de la API sale `password authentication failed` | `PGPASSWORD` no es igual a `POSTGRES_PASSWORD` | Pon la misma en los dos `.env` |
+| La página dice `La API no respondió. Revisa que esté prendida.` | La API está apagada o en otro puerto | Prende la API. Revisa `API_URL` en el `.env` de la página |
+| En la terminal de la API sale `Intento 1 de 3: no se pudo avisar a n8n` | n8n está apagado | `docker compose up -d n8n`. El pedido igual queda guardado |
+| La API dice `n8n rechazó el pedido ... con el código 404` | El workflow no está publicado | Dale **Publish** en n8n |
+| ... `con el código 403` | El `N8N_WEBHOOK_SECRET` de ese `.env` no es igual al de la credencial **Secreto de la API** | Deja el mismo secreto en `proyecto/.env`, en `proyecto/api/.env` y en la credencial |
+| `port is already allocated` o `EADDRINUSE` | Otro programa usa ese puerto, por ejemplo un n8n que no es el de Docker | Apágalo. Con `docker ps` se ven los contenedores prendidos |
+| `proyecto-sqlserver` se apaga solo | `MSSQL_SA_PASSWORD` no cumple las reglas | Cámbiala y corre otra vez `docker compose up -d` |
+| `proyecto-n8n` se apaga solo y en sus logs dice `Mismatching encryption keys` | Cambió `N8N_ENCRYPTION_KEY` | Vuelve a poner la llave de antes. Si se perdió, `docker volume rm proyecto_datos-n8n` borra n8n para empezar de nuevo |
+| La colección de Postman falla en el login | La base no tiene los datos de ejemplo | `npm run db:init` en `proyecto/api` |

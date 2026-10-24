@@ -1,6 +1,27 @@
- echo "# Entorno de desarrollo"\x3b git --version\x3b node -v\x3b npm -v\x3b python --version\x3b docker --version\x3b } > entorno.md 2>&1;24d60ce0-9e2b-4c4f-afec-4ddb4dd80a3d # Entorno de desarrollo
-git version 2.56.0.windows.1
-v24.21.0
-11.19.0
-Python was not found; run without arguments to install from the Microsoft Store, or disable this shortcut from Settings > Apps > Advanced app settings > App execution aliases.
-Docker version 29.8.0, build 88096ef
+# Entorno de desarrollo
+
+Las herramientas con las que hice la inducción, en Windows, y su versión.
+
+| Herramienta | Versión | Para qué la usé |
+|---|---|---|
+| Git | 2.56.0 | El control de versiones del repo |
+| Node.js | 24.21.0 | Los ejercicios de JavaScript, la API, los frontends, Newman y n8n |
+| npm | 11.19.0 | Instalar las librerías de Node |
+| Python | 3.14.8 | Los ejercicios de Python y los bots de RPA |
+| Docker Desktop | Docker 29.8.0 | Las bases de datos y el proyecto en contenedores |
+| PostgreSQL | 16, en Docker | La base de datos del proyecto |
+| SQL Server | 2022, en Docker | Los ejercicios de SQL |
+| n8n | 2.44.5 | Los workflows del día 14 y del proyecto |
+
+También usé VS Code, con su terminal de PowerShell, Postman para probar la API y Zoho CRM, y DBeaver para ver las bases de datos.
+
+Para revisar las versiones, en la terminal:
+
+```powershell
+git --version
+node -v
+npm -v
+python --version
+docker --version
+n8n --version
+```

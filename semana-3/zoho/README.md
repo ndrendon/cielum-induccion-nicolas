@@ -7,6 +7,7 @@ Casi todo este día se hace dentro de Zoho CRM, en el navegador. Esta carpeta ti
 | `leads-ficticios.csv` | 10 leads inventados para el ejercicio básico. Los correos son `@example.com` y los teléfonos no existen |
 | `postman/zoho-leads.postman_collection.json` | Ejercicio avanzado: tokens, CRUD y búsquedas de Leads con la API v8 |
 | `postman/zoho.postman_environment.json` | El entorno de Postman con las variables vacías, sin tokens reales |
+| `capturas/` | Las capturas del ejercicio básico: la importación y la lista de leads |
 
 ## Antes de empezar: la cuenta de prueba
 
@@ -32,6 +33,10 @@ Los nombres de los menús salen en español o en inglés, según el idioma de la
 5. Dale **Importar**.
 
 **3. Revisa el resultado.** Zoho debe decir que agregó 8 y omitió 2: los dos que ya creaste a mano. En la lista de Leads deben quedar 10.
+
+![Historial de importación: 8 agregados y 2 omitidos](capturas/01-historial-importacion.png)
+
+![La lista de Leads con los 10 leads](capturas/02-leads-importados.png)
 
 ## Intermedio: campo, vista y workflow
 
@@ -119,6 +124,6 @@ También borra el grant token, porque ya se usó.
 
 | Ejercicio | Qué se hace | Dónde se ve |
 |---|---|---|
-| Básico | Cuenta de prueba, 2 leads a mano y 8 con el CSV | En Zoho, en la lista de Leads |
+| Básico | Cuenta de prueba, 2 leads a mano y 8 con el CSV | En Zoho, en la lista de Leads, y en `capturas/` |
 | Intermedio | Campo Origen Cielum, vista Leads de origen Web y regla que crea una tarea | En Zoho. Las capturas van en `proyecto/zoho/configuracion.md` |
 | Avanzado | Self Client, tokens y Postman con crear, consultar, actualizar y buscar leads, con renovación automática | `postman/` |

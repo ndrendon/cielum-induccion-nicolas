@@ -40,7 +40,7 @@ class ErrorDelBot(Exception):
 def leer_configuracion():
     """Lee la dirección del frontend y el usuario de prueba del archivo .env."""
     load_dotenv(CARPETA / '.env')
-    url = os.getenv('FRONTEND_URL', 'http://localhost:8080').rstrip('/')
+    url = os.getenv('FRONTEND_URL', 'http://localhost:5173').rstrip('/')
     usuario = os.getenv('RPA_USUARIO')
     clave = os.getenv('RPA_CLAVE')
     if not usuario or not clave:
