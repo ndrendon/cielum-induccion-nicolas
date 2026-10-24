@@ -60,23 +60,32 @@ En la tabla `log_integraciones`, la columna `resultado` puede ser `creado`, `act
 
 ## Prepararlo (una sola vez)
 
-### 1. n8n prendido
+n8n corre en Docker, en el contenedor `proyecto-n8n`, y es **el mismo para los dos modos** del proyecto: el local, con la API y la página en `npm run dev`, y el Docker. Por eso se prepara una sola vez, con una sola cuenta y unas solas credenciales. Todo queda guardado en el volumen `datos-n8n`.
 
-Sigue **Antes de empezar: n8n en Docker** en [`../../semana-3/rpa-n8n/README.md`](../../semana-3/rpa-n8n/README.md): los dos valores nuevos del `.env`, `docker compose up -d --build` y tu cuenta de n8n.
+### 1. Prender n8n
 
-### 2. La tabla `log_integraciones`
-
-Si la base de Docker se creó antes de esta parte, la tabla no existe todavía: los scripts de `api/db` solo corren solos cuando el volumen está vacío. Créala una vez, parado en `proyecto`:
+Con el `proyecto/.env` lleno (ver **La primera vez** en [`../README.md`](../README.md)), parado en `proyecto`:
 
 ```powershell
-docker compose exec postgres psql -U postgres -d proyecto -f /docker-entrypoint-initdb.d/03_integraciones.sql
+docker compose up -d postgres mailpit n8n
 ```
 
-Debe responder `CREATE TABLE` y `CREATE INDEX`. El script se puede correr varias veces sin borrar nada. Con `npm run db:init` la tabla también se crea en la base local.
+Abre <http://localhost:5678>. La primera vez n8n pide crear la cuenta del dueño (**Set up owner account**): correo, nombre, apellido y contraseña. Esa cuenta solo existe en tu n8n. Si después pregunta por tu empresa o te ofrece una licencia gratis, puedes saltarlo.
 
-### 3. Un cliente de Zoho para n8n
+### 2. La API avisando a n8n
 
-El Self Client del día 13 sirve para Postman, pero n8n necesita otro tipo de cliente para conectarse solo y renovar el token cuando vence.
+- **Modo local:** en `proyecto/api/.env` deben estar `N8N_WEBHOOK_URL=http://localhost:5678/webhook/pedido-creado` y `N8N_WEBHOOK_SECRET`. Si los acabas de agregar, apaga la API con **Ctrl + C** y préndela otra vez con `npm run dev`.
+- **Modo Docker:** `docker-compose.yml` ya le pone a la API `N8N_WEBHOOK_URL=http://n8n:5678/webhook/pedido-creado`, y el secreto sale de `N8N_WEBHOOK_SECRET` en `proyecto/.env`.
+
+El secreto debe ser **el mismo** en `proyecto/.env` y en `proyecto/api/.env`, porque n8n tiene una sola credencial para revisarlo.
+
+### 3. La tabla `log_integraciones`
+
+Si el volumen de la base es nuevo, PostgreSQL la crea solo la primera vez. Si la base ya existía de antes de la parte 7, se crea con `npm run db:init` en `proyecto/api`, que también deja los datos de ejemplo.
+
+### 4. Un cliente de Zoho para n8n
+
+El Self Client del día 13 sirve para Postman, pero n8n necesita otro tipo de cliente para conectarse solo y renovar el token cuando vence. Si ya lo creaste en el día 14, usa el mismo: el Client ID y el Client Secret están en su pestaña **Client Secret**.
 
 1. Entra a <https://api-console.zoho.com> y dale **Add Client** → **Server-based Applications** → **Create Now**.
 2. Llena el formulario:
@@ -85,38 +94,49 @@ El Self Client del día 13 sirve para Postman, pero n8n necesita otro tipo de cl
    - Authorized Redirect URIs: `http://localhost:5678/rest/oauth2-credential/callback`
 3. Dale **Create**. En la pestaña **Client Secret** quedan el **Client ID** y el **Client Secret**. No los pegues en ningún archivo del repo.
 
-### 4. Las credenciales en n8n
+### 5. Las credenciales en n8n
 
 En n8n: **Overview** → pestaña **Credentials** → **Create credential**. Busca el tipo, dale **Continue**, llena los campos y dale **Save**. Para cambiar el nombre de la credencial, haz clic en el título de arriba (por ejemplo **Zoho account**).
 
 | Nombre | Tipo | Campos |
 |---|---|---|
-| `Zoho CRM` | **Zoho OAuth2 API** | **Access Token URL**: `US - https://accounts.zoho.com/oauth/v2/token` (si tu cuenta no es `.com`, escoge la de tu data center). **Client ID** y **Client Secret**: los del paso 3. Después dale **Connect**, entra con tu cuenta de Zoho y acepta los permisos. Debe quedar conectada |
-| `Secreto de la API` | **Header Auth** | **Name**: `X-Webhook-Secret`. **Value**: el mismo texto de `N8N_WEBHOOK_SECRET` en `proyecto/.env` |
+| `Zoho CRM` | **Zoho OAuth2 API** | **Access Token URL**: `US - https://accounts.zoho.com/oauth/v2/token` (si tu cuenta no es `.com`, escoge la de tu data center). **Client ID** y **Client Secret**: los del paso 4. Después dale **Connect**, entra con tu cuenta de Zoho y acepta los permisos. Debe quedar conectada |
+| `Secreto de la API` | **Header Auth** | **Name**: `X-Webhook-Secret`. **Value**: el texto de `N8N_WEBHOOK_SECRET` en `proyecto/.env` |
 | `PostgreSQL del proyecto` | **Postgres** | **Host**: `postgres`. **Database**: `proyecto`. **User**: `postgres`. **Password**: la de `POSTGRES_PASSWORD` en `proyecto/.env`. **Port**: `5432` |
-| `SMTP de Mailpit` | **SMTP** | Es la del ejercicio avanzado del día 14: **User** `n8n`, **Password** `n8n`, **Host** `mailpit`, **Port** `1025` y **SSL/TLS** apagado |
+| `SMTP de Mailpit` | **SMTP** | **User** `n8n`, **Password** `n8n`, **Host** `mailpit`, **Port** `1025` y **SSL/TLS** apagado. Mailpit acepta cualquier usuario y contraseña |
 
-Para PostgreSQL se usa `postgres` y el puerto 5432 porque n8n está dentro de la red de Docker. Desde tu computador, en cambio, la base está en `localhost:5433`.
+Los hosts son `postgres` y `mailpit`, y el puerto de la base es el `5432`, porque n8n está dentro de la red de Docker y ahí encuentra a los otros contenedores por su nombre. Desde tu computador, en cambio, la base está en `localhost:5433`. Como n8n siempre corre en Docker, estas credenciales sirven igual para los dos modos.
 
-### 5. Importar el workflow
+### 6. El Error Workflow
+
+El workflow del pedido usa **Aviso de errores**, el Error Workflow del ejercicio avanzado del día 14:
+
+1. **Create workflow** → menú **...** al lado del nombre → **Import** → **From file** → `semana-3/rpa-n8n/03-avanzado/aviso-de-errores.json`.
+2. Abre el nodo **Enviar el aviso por correo** y revisa que tenga la credencial `SMTP de Mailpit`.
+3. Dale **Publish** y, en la ventana, otra vez **Publish**. Tiene que estar publicado para poder escogerlo en el otro workflow.
+
+### 7. Importar el workflow
 
 1. **Create workflow** → menú **...** al lado del nombre → **Import** → **From file** → `proyecto/n8n/pedido-a-zoho.json`.
 2. Sale el aviso **Credentials auto-added**: n8n les puso a los nodos las credenciales que creaste.
 3. Abre los nodos **Buscar contacto en Zoho**, **Actualizar contacto** y **Crear contacto**, y revisa que en **Zoho OAuth2 API** esté escogida `Zoho CRM`. Si un nodo tiene un triángulo rojo, ábrelo y escógela.
 4. Abre **Configuración** y revisa `zohoApi`: `https://www.zohoapis.com` para una cuenta `.com`. Si tu cuenta es de otro data center, cámbialo, por ejemplo a `https://www.zohoapis.eu`.
-5. Menú **...** → **Settings** → **Error Workflow (to notify when this one errors)** → **Aviso de errores** (el Error Workflow del ejercicio avanzado, que ya debe estar publicado) → **Save**.
+5. Menú **...** → **Settings** → **Error Workflow (to notify when this one errors)** → **Aviso de errores** → **Save**.
 6. Dale **Publish** y otra vez **Publish**. Desde ese momento la URL `http://localhost:5678/webhook/pedido-creado` queda escuchando.
 
 ## Probarlo
 
-1. **Crea un pedido.** Abre <http://localhost:8080>, entra con `vendedor@cielum.test` / `Vendedor2026*` y crea un pedido en **Nuevo pedido**.
+1. **Crea un pedido.** Abre la página en React (modo local: <http://localhost:5173>, modo Docker: <http://localhost:8080>), entra con `vendedor@cielum.test` / `Vendedor2026*` y crea un pedido en **Nuevo pedido**.
 2. **Revisa la ejecución.** En n8n, en el workflow, pestaña **Executions**: sale una ejecución nueva. Al abrirla se ve qué pasó en cada nodo.
 3. **Revisa Zoho CRM.** En **Contactos** sale el cliente del pedido, y en **Descripción** dice `Último pedido: #... del ... por $ ...`.
 4. **Revisa el correo.** En Mailpit (<http://localhost:8025>) llega *Pedido #...: el contacto se creó en Zoho CRM*.
-5. **Revisa el log.** En Adminer (<http://localhost:8081>), tabla `log_integraciones`, o con este comando, parado en `proyecto`:
+5. **Revisa el log.** En DBeaver, en la base `proyecto` de `localhost:5433`:
 
-   ```powershell
-   docker compose exec postgres psql -U postgres -d proyecto -c "SELECT id_log, id_pedido, resultado, email_cliente, id_externo, fecha FROM log_integraciones ORDER BY id_log DESC LIMIT 5;"
+   ```sql
+   SELECT id_log, id_pedido, resultado, email_cliente, id_externo, fecha
+   FROM log_integraciones
+   ORDER BY id_log DESC
+   LIMIT 5;
    ```
 
 6. **Crea otro pedido del mismo cliente.** Esta vez el resultado es `actualizado`, y el correo dice *el contacto se actualizó*.
@@ -140,7 +160,7 @@ Para PostgreSQL se usa `postgres` y el puerto 5432 porque n8n está dentro de la
 - **Salida de error:** los nodos de Zoho y **Armar resultado** tienen **Settings** → **On Error** → **Continue (using error output)**. Si fallan, el item sigue por la salida de error hacia **Armar error**. Ese nodo arma un mensaje con el código HTTP y el código de Zoho (por ejemplo `HTTP 401 · INVALID_TOKEN · invalid oauth token`), lo registra como `error` en el log y avisa por correo.
 - **Reintentos:** **Buscar contacto** y **Actualizar contacto** tienen **Retry On Fail**: 3 intentos, con 2 segundos entre uno y otro. **Crear contacto** no se reintenta, porque un `POST` repetido podría crear el contacto dos veces.
 - **Error Workflow:** si falla otra cosa, como la base de datos o el correo, corre **Aviso de errores** y manda un correo con el nodo que falló.
-- **Del lado de la API:** si n8n está apagado o responde 500, la API reintenta 3 veces (esperando 1 y 2 segundos) sin frenar la respuesta del pedido. El pedido se guarda igual, y el error queda en el log de la API (`docker compose logs api`).
+- **Del lado de la API:** si n8n está apagado o responde 500, la API reintenta 3 veces (esperando 1 y 2 segundos) sin frenar la respuesta del pedido. El pedido se guarda igual, y el error queda en el log de la API: la terminal de `npm run dev` en el modo local, o `docker compose logs api` en Docker.
 
 ## Idempotencia
 
@@ -148,13 +168,19 @@ Si el mismo pedido llega dos veces, por ejemplo por un reintento, no se crea un 
 
 ## Si algo falla
 
+Los mensajes de la API salen en su terminal (modo local) o en `docker compose logs api` (Docker). Los de n8n, en `docker compose logs -f n8n`.
+
 | Lo que pasa | Por qué | Qué hacer |
 |---|---|---|
-| En `docker compose logs api` sale `n8n rechazó el pedido ... con el código 404` | El workflow no está publicado | Dale **Publish** al workflow |
-| ... con el código 403 | El valor de la credencial **Secreto de la API** no es igual a `N8N_WEBHOOK_SECRET` | Corrige la credencial. Si cambiaste el `.env`, corre `docker compose up -d` para que la API tome el valor nuevo |
-| `Intento 1 de 3: no se pudo avisar a n8n ... (fetch failed)` | n8n está apagado | `docker compose up -d n8n` |
+| La API dice `n8n rechazó el pedido ... con el código 404` | El workflow no está publicado | Dale **Publish** al workflow |
+| ... con el código 403 | El secreto de ese `.env` no es igual al de la credencial **Secreto de la API** | Deja el mismo `N8N_WEBHOOK_SECRET` en `proyecto/.env`, en `proyecto/api/.env` y en la credencial. Después reinicia la API |
+| `Intento 1 de 3: no se pudo avisar a n8n ... (fetch failed)` | n8n está apagado | `docker compose up -d n8n` en `proyecto` |
+| La API no dice nada al crear un pedido | `N8N_WEBHOOK_URL` está vacía, así que la API no avisa | Llénala, como dice el paso 2 |
+| n8n vuelve a pedir crear la cuenta | Se borró el volumen `datos-n8n`, por ejemplo con `docker compose down -v` | Hay que prepararlo otra vez. Para apagar sin borrar: `docker compose stop` o `docker compose down`, sin `-v` |
 | **Buscar contacto en Zoho** falla con `Credentials ... are not set` | El nodo no tiene la credencial | Abre el nodo y escoge `Zoho CRM` |
 | El log dice `HTTP 401 · INVALID_TOKEN` | La credencial de Zoho no está conectada o es de otro data center | En la credencial dale **Connect** otra vez y revisa **Access Token URL** y `zohoApi` |
-| **Registrar en log_integraciones** falla con `relation "log_integraciones" does not exist` | Falta crear la tabla | Corre el paso 2 de **Prepararlo** |
-| No llega el correo | La credencial SMTP está mal | Revisa que el host sea `mailpit`, el puerto `1025` y que **SSL/TLS** esté apagado |
+| **Registrar en log_integraciones** falla con `relation "log_integraciones" does not exist` | Falta crear la tabla | `npm run db:init` en `proyecto/api` |
+| **Registrar en log_integraciones** falla con `ENOTFOUND` o `password authentication failed` | La credencial de PostgreSQL está mal | Host `postgres`, puerto `5432` y la contraseña de `POSTGRES_PASSWORD` |
+| No llega el correo | La credencial SMTP está mal o Mailpit está apagado | `docker compose up -d mailpit`. Revisa que el host sea `mailpit`, el puerto `1025` y que **SSL/TLS** esté apagado |
 | El webhook responde `{"message":"Workflow was started"}` en lugar de 202 | Se cambió el nodo **Pedido creado** | En **Respond** debe decir **Using 'Respond to Webhook' Node** |
+| Al escoger el Error Workflow sale *The selected error workflow has no published version* | **Aviso de errores** no está publicado | Ábrelo y dale **Publish** |

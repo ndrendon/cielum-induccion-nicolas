@@ -1,21 +1,22 @@
-# Proyecto integrador: todo el proyecto corriendo en Docker.
+# Proyecto integrador en Docker.
 # Partes 3 y 4: la API y el frontend en React. Parte 5: el frontend en Vue.
 # Parte 7: n8n, que recibe cada pedido nuevo y lo pasa a Zoho CRM, y Mailpit para ver sus correos.
 #
-# Se prende desde esta carpeta (proyecto) con:
-#   docker compose up -d
+# postgres, n8n y mailpit los usan los dos modos del proyecto, así que todo queda en un solo lugar:
+#   Modo local:  docker compose up -d postgres mailpit n8n   (la API y la página van con npm run dev)
+#   Modo Docker: docker compose up -d --build                (también la API y las páginas)
 #
 # Antes hay que crear el archivo .env a partir de .env.example (ver README.md).
 #
 # Servicios y puertos en el computador:
-#   frontend      http://localhost:8080   (la página en React: login y pedidos)
+#   postgres      localhost:5433          (PostgreSQL con la base proyecto, de los dos modos)
+#   n8n           http://localhost:5678   (n8n: los workflows de la parte 7, de los dos modos)
+#   mailpit       http://localhost:8025   (los correos que manda n8n, de los dos modos)
+#   api           http://localhost:3001   (la API en Docker, la del entorno docker de Postman)
+#   frontend      http://localhost:8080   (la página en React en Docker)
 #   frontend-vue  http://localhost:8082   (la misma página hecha en Vue)
-#   api           http://localhost:3001   (la API del proyecto, la del entorno docker de Postman)
-#   postgres      localhost:5433          (PostgreSQL con la base proyecto)
 #   sqlserver     localhost:1434          (SQL Server 2022)
 #   adminer       http://localhost:8081   (página para ver la base de PostgreSQL)
-#   n8n           http://localhost:5678   (n8n: los workflows de la parte 7)
-#   mailpit       http://localhost:8025   (los correos que manda n8n)
 
 name: proyecto
 
@@ -135,6 +136,7 @@ services:
 
   n8n:
     # Parte 7: n8n recibe en un webhook el aviso de cada pedido nuevo y pasa el cliente a Zoho CRM.
+    # Es el mismo para los dos modos: la API local le avisa en localhost:5678 y la de Docker en n8n:5678.
     # Los workflows están en proyecto/n8n y se importan desde la página de n8n.
     image: n8nio/n8n:2.44.5
     container_name: proyecto-n8n

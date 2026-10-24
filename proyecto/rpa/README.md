@@ -15,7 +15,7 @@
 
 ## Cómo se corre
 
-Con el proyecto prendido en Docker (`docker compose up -d` en la carpeta `proyecto`), en PowerShell, desde la raíz del repo:
+Con la API y la página en React prendidas (ver **Opción 1: modo local** en [`../README.md`](../README.md)), en PowerShell, desde la raíz del repo:
 
 ```powershell
 cd proyecto/rpa
@@ -27,7 +27,7 @@ Copy-Item .env.example .env
 code .env
 ```
 
-En el `.env` llena `RPA_CLAVE` con la contraseña del usuario `vendedor@cielum.test`. Es `Vendedor2026*`, y también sale en la página de login. Si el frontend corre con `npm run dev` y no en Docker, cambia `FRONTEND_URL` a `http://localhost:5173`.
+En el `.env` llena `RPA_CLAVE` con la contraseña del usuario `vendedor@cielum.test`. Es `Vendedor2026*`, y también sale en la página de login. `FRONTEND_URL` ya viene con `http://localhost:5173`, la página del modo local. En el modo Docker, cámbialo a `http://localhost:8080`.
 
 Después, cada vez que quieras el reporte:
 
@@ -41,7 +41,7 @@ python reporte_diario.py
 | `python reporte_diario.py --fecha 2026-10-01` | Reporte de otra fecha (con el formato AAAA-MM-DD) |
 | `python reporte_diario.py --ver` | Muestra el navegador mientras el bot trabaja |
 
-Para que haya pedidos de hoy, crea uno o dos en <http://localhost:8080>, en **Nuevo pedido**. Los pedidos de los datos de ejemplo son de agosto, septiembre y el 1 de octubre: `python reporte_diario.py --fecha 2026-10-01` trae uno.
+Para que haya pedidos de hoy, crea uno o dos en la página (<http://localhost:5173>), en **Nuevo pedido**. Los pedidos de los datos de ejemplo son de agosto, septiembre y el 1 de octubre: `python reporte_diario.py --fecha 2026-10-01` trae uno.
 
 ## Qué genera
 
@@ -55,7 +55,7 @@ Si ese día no hubo pedidos, el reporte se crea igual y lo dice.
 En la terminal, el bot deja un log de lo que va haciendo. Por ejemplo:
 
 ```text
-08:44:27 INFO    Entrando a http://localhost:8080/login con el usuario vendedor@cielum.test
+08:44:27 INFO    Entrando a http://localhost:5173/login con el usuario vendedor@cielum.test
 08:44:28 INFO    Sesión iniciada
 08:44:28 INFO    Página 1 leída: 10 pedidos del 2026-10-21 hasta ahora
 08:44:28 INFO    Página 2 leída: 15 pedidos del 2026-10-21 hasta ahora

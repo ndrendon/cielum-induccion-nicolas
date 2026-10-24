@@ -42,6 +42,8 @@ n8n y Mailpit están en el `docker-compose.yml` del proyecto (parte 7). Así hay
 
 4. **Revisa Mailpit.** Abre <http://localhost:8025>. Ahí van a llegar los correos que mande n8n. Mailpit los recibe y los muestra, pero no los envía a internet.
 
+**Si la API corre en el modo local** (`npm run dev`, ver [`../../proyecto/README.md`](../../proyecto/README.md)), n8n sigue en Docker, pero no hay un contenedor `api`. En los nodos **HTTP Request**, usa `http://host.docker.internal:3000` en lugar de `http://api:3000`: así n8n llega desde Docker a la API que corre en el computador.
+
 ## Básico: Manual Trigger → HTTP Request → archivo
 
 El flujo pide la lista de productos a la API del proyecto, la convierte en un archivo CSV y lo guarda en la carpeta compartida de n8n. Esa carpeta es `/home/node/.n8n-files` dentro del contenedor y `proyecto/n8n/archivos` en tu computador. Es la única carpeta donde n8n deja leer y escribir archivos.

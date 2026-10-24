@@ -14,7 +14,7 @@ Colección completa de Postman para la API de `proyecto/api`, con sus entornos, 
 
 ## Qué se necesita
 
-- La API prendida con los datos de ejemplo: `npm run db:init` y `npm run dev` en `proyecto/api`. Para el entorno `docker`, también `docker compose up -d --build` en `proyecto/api`.
+- La API prendida con los datos de ejemplo: `npm run db:init` y `npm run dev` en `proyecto/api`, con la base prendida (`docker compose up -d postgres` en `proyecto`). Para el entorno `docker`, `docker compose up -d --build` en `proyecto`.
 - Postman, para usar la colección con ventanas.
 - Node.js, para correrla con Newman.
 
